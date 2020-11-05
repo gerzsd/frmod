@@ -7,3 +7,5 @@ The package contains two modules:
 
 ## Reference
 Chang-Jo Chung (2006). Using likelihood ratio functions for modeling the conditional probability of occurrence of future landslides for risk assessment. *Computers & Geosciences, 32* (8), 1052–1068. https://doi.org/10.1016/j.cageo.2006.02.003.
+
+@ Dávid Gerzsenyi, 2020
