@@ -1,0 +1,1951 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.1" />
+<title>frmod.analysis API documentation</title>
+<meta name="description" content="Frequency ratio model analysis …" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>frmod.analysis</code></h1>
+</header>
+<section id="section-intro">
+<p>Frequency ratio model analysis.</p>
+<p>Created on Wed Jul 15 19:45:41 2020</p>
+<p>@author: Dávid Gerzsenyi</p>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">&#34;&#34;&#34;
+Frequency ratio model analysis.
+
+Created on Wed Jul 15 19:45:41 2020
+
+@author: Dávid Gerzsenyi
+&#34;&#34;&#34;
+
+import os
+
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+
+import frmod.utils as utils
+
+
+def get_freq_ratios(vr,
+                    mask,
+                    binc=100,
+                    nodata=-9999.,
+                    categorical=False,
+                    normalize=False,
+                    ls_marker=1,
+                    nls_marker=0):
+    &#34;&#34;&#34;
+    Get the frequency ratio of the landslide and non-landslide parts.
+
+    Parameters
+    ----------
+    vr : Array
+        The array of the analyzed variable. Numeric values.
+    mask : Array
+        The array of the mask.
+    binc : int, optional
+        Bin count for the histogram of the non-categorical variables.
+        The default is 100.
+    categorical : bool, optional
+        Set true if the analysed variable raster is categorical.
+        Categories must be marked with unique integers in the rasters.
+        The dafault is False.
+    normalize : bool, optional
+        Set True for normalized weights (0, 1)
+        The default is False.
+    ls_marker : int, optional
+        The value marking the landslide parts.
+        The default is 1.
+    nls_marker : int, optional
+        The value marking the non-landslide parts.
+        The default is 0.
+
+    Returns
+    -------
+    frequency_ratios : Array
+        The frequency ratio values. Length: number of bins.
+    hst_bins : Array
+        Array containing the edges of the bins. Length: number of bins + 1.
+
+    &#34;&#34;&#34;
+    ls_area = np.count_nonzero(mask == ls_marker)
+    nls_area = np.count_nonzero(mask == nls_marker)
+    if categorical:
+        bin_edges = np.unique(vr[(vr != nodata)])
+        bin_edges = np.append(bin_edges, bin_edges[-1] + 1)
+        ls_hst = np.histogram(vr[mask == ls_marker],
+                              bins=bin_edges,
+                              density=False)
+        nls_hst = np.histogram(vr[mask == nls_marker],
+                               bins=bin_edges,
+                               density=False)
+    else:
+        glob_lim = (vr[vr != nodata].min(),
+                    vr[vr != nodata].max())
+        ls_hst = np.histogram(vr[mask == ls_marker], bins=binc,
+                              range=glob_lim, density=False)
+        nls_hst = np.histogram(vr[mask == nls_marker], bins=binc,
+                               range=glob_lim, density=False)
+    ls_hst_d = ls_hst[0] / ls_area
+    nls_hst_d = nls_hst[0] / nls_area
+    # global hst_bins
+    hst_bins = ls_hst[1]
+    # global fr
+    fr = ls_hst_d / nls_hst_d
+    # global frequency_ratios
+    if normalize:
+        frequency_ratios = (fr - fr.min()) / (fr.max() - fr.min())
+    else:
+        frequency_ratios = fr
+    return frequency_ratios, hst_bins
+
+
+def reclass_raster(vr, f_ratios, bin_edges, verbose=False):
+    &#34;&#34;&#34;
+    Create an array with the frequency ratios.
+
+    Parameters
+    ----------
+    vr : Array
+        Array of the analysed variable to be reclassified.
+    f_ratios : Array
+        The frequency ratio values. Length: number of bins.
+    bin_edges : Array
+        Array containing the edges of the bins. Length: number of bins + 1.
+    verbose : bool
+        Set True to print the bin ranges and reclass values.
+
+    Returns
+    -------
+    reclassed : Array
+        Reclassified array with the appropriate frequency ratio values.
+
+    &#34;&#34;&#34;
+    reclassed = np.ones(vr.shape) * -99999
+    for i in range(0, len(f_ratios)):
+        # Reclassifying the raster by assigning the frequency ratio
+        # values of each bin to the corresponding raster values.
+
+        mn = bin_edges[:-1][i]
+        mx = bin_edges[1:][i]
+        vrange = mx - mn
+        to_reclass = (vr &gt;= mn) &amp; (vr &lt; mx)
+        reclassed[to_reclass] = f_ratios[i]
+        if verbose:
+            print(&#34;Min: {} Max: {} Range: {} Ratio: {}&#34;.format(
+                mn, mx, vrange, f_ratios[i])
+                 )
+    return reclassed
+
+
+def show_grid(grid, nodata, name=&#39;Grid&#39;, cmap=&#39;viridis&#39;):
+    &#34;&#34;&#34;
+    Plot a grid, nodata values are masked.
+
+    Parameters
+    ----------
+    grid : Array
+        Grid to plot.
+    nodata : int / float
+        Nodata value of the grid. Nodata values will be masked.
+    name : str, optional
+        The title of the plot. The default is &#39;Grid&#39;.
+    cmap : str, optional
+        Must be the name of a built-in Matplotlib colormap.
+        The default is &#39;viridis&#39;.
+
+    Returns
+    -------
+    None.
+
+    &#34;&#34;&#34;
+    masked_grid = np.ma.masked_where((grid == nodata), grid)
+    plt.figure()
+    plt.title(name)
+    plt.imshow(masked_grid, cmap=cmap)
+    plt.colorbar()
+
+
+class VRaster():
+    &#34;&#34;&#34;Variable raster, input for frequency ratio analysis.&#34;&#34;&#34;
+
+    def __init__(self, name, path, bins=10, categorical=False):
+        &#34;&#34;&#34;
+        Create the VRaster object.
+
+        Parameters
+        ----------
+        name : str
+            Name of the VRaster.
+        path : str
+            Path to the GDAL-compatible raster file.
+        bins : int, optional
+            Number of histogram bins. The default is 10.
+        categorical : bool, optional
+            True if it is a categorical variable, eg: geology.
+            The default is False.
+
+        Returns
+        -------
+        None.
+
+        &#34;&#34;&#34;
+        self.name = name
+        self.path = path
+        self.bins = bins
+        self.categorical = categorical
+        self.nodata = utils.get_nodata_value(path)
+        # Convert input grid to array
+        self.grid = utils.raster2array(path)
+        # Calculate basic statistics for the grid
+        self.min = min(self.grid[self.grid != self.nodata])
+        self.max = max(self.grid[self.grid != self.nodata])
+        self.limits = (self.min, self.max)
+
+    def show(self, cmap=&#39;viridis&#39;):
+        &#34;&#34;&#34;
+        Plot the VRaster.grid.
+
+        Parameters
+        ----------
+        cmap : str, optional
+            Must be the name of a built-in Matplotlib colormap.
+            The default is &#39;viridis&#39;.
+
+        Returns
+        -------
+        None.
+
+        &#34;&#34;&#34;
+        show_grid(self.grid, self.nodata, name=self.name, cmap=cmap)
+
+    def show_info(self):
+        &#34;&#34;&#34;
+        Show basic information about the VRaster.grid.
+
+        Returns
+        -------
+        None.
+
+        &#34;&#34;&#34;
+        valid_values = self.grid[self.grid != self.nodata]
+        if self.categorical:
+            print(&#34;Categorical!&#34;)
+        else:
+            average = np.mean(valid_values)
+            sdev = np.std(valid_values)
+            print(&#34;Name: {} Limits: {}&#34;.format(self.name, self.limits))
+            print(&#34;Mean: {} Standard deviation: {}&#34;.format(average, sdev))
+
+
+class LandslideMask():
+    &#34;&#34;&#34;LandslideMask.&#34;&#34;&#34;
+
+    def __init__(self, name, path, ls_marker=1, nls_marker=0, fold_count=5):
+        &#34;&#34;&#34;
+        Create a LandslideMask object.
+
+        Parameters
+        ----------
+        name : str
+            Name of the landslide mask.
+        path : str
+            Path to the file used as the mask in the analysis.
+        ls_marker : int, optional
+            Value marking the landslide pixels.
+            The default is 1.
+        nls_marker : int, optional
+            Value marking the non-landslide pixels.
+            Must be different from the nodata value.
+            The default is 0.
+        fold_count : int, optional
+            The number of cross validation folds. The default is 5.
+
+        Returns
+        -------
+        None.
+
+        &#34;&#34;&#34;
+        # Name of the LandslideMask
+        self.name = name
+        # Path to the input mask file.
+        self.path = path
+        # NoData value of the input mask file.
+        self.nodata = utils.get_nodata_value(path)
+        # 2D array representation of the input mask file.
+        self.grid = utils.raster2array(path)
+        # Value marking the landslide cells.
+        self.ls_marker = ls_marker
+        # Value marking the non-landslide cells. Different from nodata!
+        self.nls_marker = nls_marker
+        # Number of folds
+        self.fold_count = fold_count
+        # (fold_count no. of (2, n) size arrays) with the split positions
+        self.split_locations = self.get_splits(folds=self.fold_count)
+        # List of (train_areas, valid_positions) ndarray pairs.
+        self.t_v = [self.get_train_area(a) for a in self.split_locations]
+        # Training areas (1), validation cells count as non-landslide.
+        # Input mask for get_freq_ratios.
+        self.train_areas = [t_v[0] for t_v in self.t_v]
+        # Positions of the validation cells.
+        self.valid_positions = [t_v[1] for t_v in self.t_v]
+
+    def get_splits(self, folds=5):
+        &#34;&#34;&#34;
+        Split the mask for cross validation.
+
+        Parameters
+        ----------
+        folds : TYPE, optional
+            Number of desired folds. The default is 5.
+
+        Returns
+        -------
+        split_locations : list of ndarrays
+            (fold_count no. of (2, n) size arrays) with the split positions.
+
+        &#34;&#34;&#34;
+        valid = np.array(np.nonzero(self.grid == self.ls_marker))
+        valid_transposed = valid.T
+        np.random.shuffle(valid_transposed)
+        valid_transposed_split = np.array_split(valid_transposed, folds)
+        split_locations = [i.T for i in valid_transposed_split]
+        return split_locations
+
+    def get_train_area(self, split_to_omit):
+        &#34;&#34;&#34;
+        Get the train_area grid and validation cell positions.
+
+        Parameters
+        ----------
+        split_to_omit : list
+            List containing the position of the validation cells. It is
+            used construct the valid_position array. Cells marked here
+            are turned into non-landslide cells.
+
+        Returns
+        -------
+        train_area : list
+            DESCRIPTION.
+        valid_position : list
+            Lists the positions of the validation cells for the folds.
+
+        &#34;&#34;&#34;
+        train_area = np.copy(self.grid)
+        valid_position = (split_to_omit[0], split_to_omit[1])
+        train_area[valid_position] = self.nls_marker
+        return train_area, valid_position
+
+
+    def show(self, cmap=&#39;Accent&#39;):
+        &#34;&#34;&#34;
+        Plot the LandslideMask.grid.
+
+        Parameters
+        ----------
+        cmap : str, optional
+            Must be the name of a built-in Matplotlib colormap.
+            The default is &#39;Accent&#39;.
+
+        Returns
+        -------
+        None.
+
+        &#34;&#34;&#34;
+        show_grid(self.grid, self.nodata, name=self.name, cmap=cmap)
+
+class FRAnalysis():
+    &#34;&#34;&#34;Frequency ratio analysis of a LandslideMask and a list of VRasters.&#34;&#34;&#34;
+
+    def __init__(self, ls_mask, var_list):
+        &#34;&#34;&#34;
+        Create the FRAnalysis object.
+
+        Parameters
+        ----------
+        ls_mask : LandslideMask
+            The LandslideMask object for the analysis.
+        var_list : list
+            List of VRaster objects to be analyzed.
+
+        Returns
+        -------
+        None.
+
+        &#34;&#34;&#34;
+        # Input LandslideMask
+        self.ls_mask = ls_mask
+        # List of input VRasters
+        self.var_list = var_list
+        # Number of VRasters
+        self.var_count = len(var_list)
+        # Score: average estimated susceptibility of the validation cells.
+        self.score = 0
+        # Percentile bins of the fresult
+        self.ranks = None
+        # Final result, the mean estimated susceptibility map over the folds.
+        self.fresult = None
+        # Mean value of the validation cells of the fold
+        self.fold_scores = []
+        #
+        self.valid_perc = []
+        # The distributions of % ranks for the validation cells.
+        self.v_dist = []
+        # Bins for the above v_dist
+        self.v_bins = []
+        # Frequency ratio analysis results for each VRaster and fold.
+        self.stats = {}
+        # List of success rates for the folds.
+        self.success_rates = None
+        # pandas DataFrame of the success rates for the folds.
+        self.src_df = None
+        # Reclassified grids for each fold and variable
+        self.rc_folds = [self.run_analysis(v, self.ls_mask)
+                         for v in self.var_list]
+
+    def run_analysis(self, vrr, lsm):
+        &#34;&#34;&#34;
+        Frequency ratio analysis of one VRaster and the LandslideMask folds.
+
+        Parameters
+        ----------
+        vrr : VRaster
+            Supplies the grid and other parameters for the
+            get_freq_ratios function.
+        lsm : LandslideMask
+            Supplies the input masks for the get_freq_ratios functions.
+
+        Returns
+        -------
+        rc_folds : ndarray
+            The reclassified grids after the frequency ratio analysis of the
+            VRaster and each fold of the LandslideMask.
+            Shape: (self.var_count, lsm.fold_count, vrr.shape[0], vrr.shape[1])
+
+        &#34;&#34;&#34;
+        rc_folds = []
+        all_frq_ratios = []
+        all_hst_bins = []
+        # Run the analysis with the training areas of the different folds
+        for msk in lsm.train_areas:
+            frq_ratios, hst_bins = get_freq_ratios(vr=vrr.grid,
+                                                   mask=msk,
+                                                   binc=vrr.bins,
+                                                   nodata=vrr.nodata,
+                                                   categorical=vrr.categorical,
+                                                   normalize=False
+                                                   )
+            # Prepare the statistics DataFrame
+            all_frq_ratios.append(frq_ratios)
+            all_hst_bins.append(hst_bins)
+            # Reclassify the VRaster.grid
+            reclassed = reclass_raster(vrr.grid, frq_ratios, hst_bins)
+            # Append the reclassified VRaster.grid to rc_folds
+            rc_folds.append(reclassed)
+        mn = all_hst_bins[0][:-1]
+        mx = all_hst_bins[0][1:]
+        # Creating the pd.DataFrame for the statistics
+        stat_df = pd.DataFrame({(vrr.name+&#39;_min&#39;): mn, (vrr.name+&#39;_max&#39;): mx})
+        for i in range(0, lsm.fold_count):
+            cname = &#34;fold_&#34;+str(i+1)
+            stat_df.insert(i+2, cname, all_frq_ratios[i])
+        # Add the stats pd.DataFrame to the stats dict
+        self.stats[vrr.name] = stat_df
+        return rc_folds
+
+    def get_result(self):
+        &#34;&#34;&#34;
+        Get the susceptibility estimation, ranks, and model scoring.
+
+        Returns
+        -------
+        self.ranks : ndarray
+            Numpy array (101,) with the percentile bins.
+
+        &#34;&#34;&#34;
+        rc_folds = self.rc_folds
+        valid_positions = self.ls_mask.valid_positions
+        result = []
+        # percentile bins
+        pb = [x * 0.01 for x in range(0, 101)]
+        # Iterate over the folds of the ls_mask.
+        for i in range(0, self.ls_mask.fold_count):
+            fold_result = np.zeros(rc_folds[0][0].shape)
+            # Iterate over the reclassified grids of fold #i
+            for j in rc_folds:
+                # Average the reclassified  grids of fold #i.
+                fold_result += j[i] / self.var_count
+
+            # Scoring
+            valid_perc = np.quantile(fold_result[fold_result &gt;= 0],
+                                     pb,
+                                     interpolation=&#39;nearest&#39;)
+            self.valid_perc.append(valid_perc)
+            v_to_score = fold_result[valid_positions[i]]
+            v_dist, v_bins = np.histogram(v_to_score,
+                                          valid_perc,
+                                          density=False)
+            v_dist = np.array(v_dist)
+            v_dist = v_dist / sum(v_dist)
+            # Append the probability density function to vdist
+            self.v_dist.append(v_dist)
+            self.v_bins.append(v_bins)
+            # Mean estimated susceptibility of the validation cells of fold #i
+            vmean = np.mean(v_to_score)
+            self.fold_scores.append(vmean)
+            result.append(fold_result)
+            self.score += vmean
+            vstd = np.std(v_to_score)
+            print(vmean, vstd, sep=&#34;;&#34;)
+
+        # fresult: cell by cell average of the result array
+        fresult = sum(result) / self.ls_mask.fold_count
+
+        # Assigning the results from the validation folds to the location
+        # of the landslide mask
+        for i in range(0, self.ls_mask.fold_count):
+            fresult[valid_positions[i]] = result[i][valid_positions[i]]
+        # Set invalid values to -99999 (nodata)
+        fresult[fresult &lt; 0] = -99999
+
+        self.fresult = fresult
+        self.score /= self.ls_mask.fold_count
+        print(&#34;Score: &#34;, self.score)
+        percentiles = [i*0.01 for i in range(0, 101)]
+        self.ranks = np.quantile(fresult[fresult &gt; 0], percentiles)
+        return self.ranks
+
+    def get_src(self):
+        &#34;&#34;&#34;
+        Get success rate arrays for the folds.
+
+        Returns
+        -------
+        success_rates : ndarray
+            Cumulative sum of the v_dist arrays of the folds.
+
+        &#34;&#34;&#34;
+        success_rates = []
+        for i in self.v_dist:
+            success_rates.append(np.cumsum(i))
+        self.success_rates = success_rates
+        # Create the dataframe
+        percentiles = [i + 1 for i in range(0, 100)]
+        src_df = pd.DataFrame({&#34;percentile&#34;: percentiles})
+        for i in range(0, self.ls_mask.fold_count):
+            cname = &#34;fold_&#34;+str(i+1)
+            src_df.insert(i+1, cname, success_rates[i])
+        self.src_df = src_df
+        return success_rates
+
+    def save_src(self, folder=&#34;./output/&#34;, fname=&#34;src.csv&#34;):
+        &#34;&#34;&#34;
+        Save the success rates as csv.
+
+        Parameters
+        ----------
+        folder : str, optional
+            Path to the output folder. The default is &#34;./output/&#34;.
+        fname : str, optional
+            Output filename with extension. The default is &#34;src.csv&#34;.
+
+        Returns
+        -------
+        None.
+
+        &#34;&#34;&#34;
+        if os.path.isdir(folder) is False:
+            os.makedirs(folder)
+        output_path = folder+fname
+        self.src_df.to_csv(output_path)
+
+    def save_stats(self, folder=&#34;./output/&#34;, tag=&#34;&#34;):
+        &#34;&#34;&#34;
+        Save the frequency ratio statistics for each VRaster and fold.
+
+        Parameters
+        ----------
+        folder : str, optional
+            Path to the output folder. The default is &#34;./output/&#34;.
+        tag : str, optional
+            Tag inserted to the beginning of the file name.
+            The default is &#34;&#34;.
+
+        Returns
+        -------
+        None.
+
+        &#34;&#34;&#34;
+        # Create the folder directory if it doesn&#39;t exist.
+        if os.path.isdir(folder) is False:
+            os.makedirs(folder)
+
+        output_path = folder+tag
+        for k, v in self.stats.items():
+            v.to_csv(output_path+&#34;_{}.csv&#34;.format(str(k)))
+
+    def show_results(self, cmap=&#39;viridis&#39;):
+        &#34;&#34;&#34;
+        Plot fresult.
+
+        Parameters
+        ----------
+        cmap : str, optional
+            Must be the name of a built-in Matplotlib colormap.
+            The default is &#39;viridis&#39;.
+
+        Returns
+        -------
+        None.
+
+        &#34;&#34;&#34;
+        if self.fresult.any(None):
+            show_grid(self.fresult, -99999, name=&#39;Estimated susceptibility&#39;)
+        else:
+            print(&#34;Use get_result() first!&#34;)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="frmod.analysis.get_freq_ratios"><code class="name flex">
+<span>def <span class="ident">get_freq_ratios</span></span>(<span>vr, mask, binc=100, nodata=-9999.0, categorical=False, normalize=False, ls_marker=1, nls_marker=0)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get the frequency ratio of the landslide and non-landslide parts.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>vr</code></strong> :&ensp;<code>Array</code></dt>
+<dd>The array of the analyzed variable. Numeric values.</dd>
+<dt><strong><code>mask</code></strong> :&ensp;<code>Array</code></dt>
+<dd>The array of the mask.</dd>
+<dt><strong><code>binc</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>Bin count for the histogram of the non-categorical variables.
+The default is 100.</dd>
+<dt><strong><code>categorical</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>Set true if the analysed variable raster is categorical.
+Categories must be marked with unique integers in the rasters.
+The dafault is False.</dd>
+<dt><strong><code>normalize</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>Set True for normalized weights (0, 1)
+The default is False.</dd>
+<dt><strong><code>ls_marker</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>The value marking the landslide parts.
+The default is 1.</dd>
+<dt><strong><code>nls_marker</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>The value marking the non-landslide parts.
+The default is 0.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>frequency_ratios</code></strong> :&ensp;<code>Array</code></dt>
+<dd>The frequency ratio values. Length: number of bins.</dd>
+<dt><strong><code>hst_bins</code></strong> :&ensp;<code>Array</code></dt>
+<dd>Array containing the edges of the bins. Length: number of bins + 1.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_freq_ratios(vr,
+                    mask,
+                    binc=100,
+                    nodata=-9999.,
+                    categorical=False,
+                    normalize=False,
+                    ls_marker=1,
+                    nls_marker=0):
+    &#34;&#34;&#34;
+    Get the frequency ratio of the landslide and non-landslide parts.
+
+    Parameters
+    ----------
+    vr : Array
+        The array of the analyzed variable. Numeric values.
+    mask : Array
+        The array of the mask.
+    binc : int, optional
+        Bin count for the histogram of the non-categorical variables.
+        The default is 100.
+    categorical : bool, optional
+        Set true if the analysed variable raster is categorical.
+        Categories must be marked with unique integers in the rasters.
+        The dafault is False.
+    normalize : bool, optional
+        Set True for normalized weights (0, 1)
+        The default is False.
+    ls_marker : int, optional
+        The value marking the landslide parts.
+        The default is 1.
+    nls_marker : int, optional
+        The value marking the non-landslide parts.
+        The default is 0.
+
+    Returns
+    -------
+    frequency_ratios : Array
+        The frequency ratio values. Length: number of bins.
+    hst_bins : Array
+        Array containing the edges of the bins. Length: number of bins + 1.
+
+    &#34;&#34;&#34;
+    ls_area = np.count_nonzero(mask == ls_marker)
+    nls_area = np.count_nonzero(mask == nls_marker)
+    if categorical:
+        bin_edges = np.unique(vr[(vr != nodata)])
+        bin_edges = np.append(bin_edges, bin_edges[-1] + 1)
+        ls_hst = np.histogram(vr[mask == ls_marker],
+                              bins=bin_edges,
+                              density=False)
+        nls_hst = np.histogram(vr[mask == nls_marker],
+                               bins=bin_edges,
+                               density=False)
+    else:
+        glob_lim = (vr[vr != nodata].min(),
+                    vr[vr != nodata].max())
+        ls_hst = np.histogram(vr[mask == ls_marker], bins=binc,
+                              range=glob_lim, density=False)
+        nls_hst = np.histogram(vr[mask == nls_marker], bins=binc,
+                               range=glob_lim, density=False)
+    ls_hst_d = ls_hst[0] / ls_area
+    nls_hst_d = nls_hst[0] / nls_area
+    # global hst_bins
+    hst_bins = ls_hst[1]
+    # global fr
+    fr = ls_hst_d / nls_hst_d
+    # global frequency_ratios
+    if normalize:
+        frequency_ratios = (fr - fr.min()) / (fr.max() - fr.min())
+    else:
+        frequency_ratios = fr
+    return frequency_ratios, hst_bins</code></pre>
+</details>
+</dd>
+<dt id="frmod.analysis.reclass_raster"><code class="name flex">
+<span>def <span class="ident">reclass_raster</span></span>(<span>vr, f_ratios, bin_edges, verbose=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Create an array with the frequency ratios.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>vr</code></strong> :&ensp;<code>Array</code></dt>
+<dd>Array of the analysed variable to be reclassified.</dd>
+<dt><strong><code>f_ratios</code></strong> :&ensp;<code>Array</code></dt>
+<dd>The frequency ratio values. Length: number of bins.</dd>
+<dt><strong><code>bin_edges</code></strong> :&ensp;<code>Array</code></dt>
+<dd>Array containing the edges of the bins. Length: number of bins + 1.</dd>
+<dt><strong><code>verbose</code></strong> :&ensp;<code>bool</code></dt>
+<dd>Set True to print the bin ranges and reclass values.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>reclassed</code></strong> :&ensp;<code>Array</code></dt>
+<dd>Reclassified array with the appropriate frequency ratio values.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def reclass_raster(vr, f_ratios, bin_edges, verbose=False):
+    &#34;&#34;&#34;
+    Create an array with the frequency ratios.
+
+    Parameters
+    ----------
+    vr : Array
+        Array of the analysed variable to be reclassified.
+    f_ratios : Array
+        The frequency ratio values. Length: number of bins.
+    bin_edges : Array
+        Array containing the edges of the bins. Length: number of bins + 1.
+    verbose : bool
+        Set True to print the bin ranges and reclass values.
+
+    Returns
+    -------
+    reclassed : Array
+        Reclassified array with the appropriate frequency ratio values.
+
+    &#34;&#34;&#34;
+    reclassed = np.ones(vr.shape) * -99999
+    for i in range(0, len(f_ratios)):
+        # Reclassifying the raster by assigning the frequency ratio
+        # values of each bin to the corresponding raster values.
+
+        mn = bin_edges[:-1][i]
+        mx = bin_edges[1:][i]
+        vrange = mx - mn
+        to_reclass = (vr &gt;= mn) &amp; (vr &lt; mx)
+        reclassed[to_reclass] = f_ratios[i]
+        if verbose:
+            print(&#34;Min: {} Max: {} Range: {} Ratio: {}&#34;.format(
+                mn, mx, vrange, f_ratios[i])
+                 )
+    return reclassed</code></pre>
+</details>
+</dd>
+<dt id="frmod.analysis.show_grid"><code class="name flex">
+<span>def <span class="ident">show_grid</span></span>(<span>grid, nodata, name='Grid', cmap='viridis')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Plot a grid, nodata values are masked.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>grid</code></strong> :&ensp;<code>Array</code></dt>
+<dd>Grid to plot.</dd>
+<dt><strong><code>nodata</code></strong> :&ensp;<code>int / float</code></dt>
+<dd>Nodata value of the grid. Nodata values will be masked.</dd>
+<dt><strong><code>name</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>The title of the plot. The default is 'Grid'.</dd>
+<dt><strong><code>cmap</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>Must be the name of a built-in Matplotlib colormap.
+The default is 'viridis'.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>None.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def show_grid(grid, nodata, name=&#39;Grid&#39;, cmap=&#39;viridis&#39;):
+    &#34;&#34;&#34;
+    Plot a grid, nodata values are masked.
+
+    Parameters
+    ----------
+    grid : Array
+        Grid to plot.
+    nodata : int / float
+        Nodata value of the grid. Nodata values will be masked.
+    name : str, optional
+        The title of the plot. The default is &#39;Grid&#39;.
+    cmap : str, optional
+        Must be the name of a built-in Matplotlib colormap.
+        The default is &#39;viridis&#39;.
+
+    Returns
+    -------
+    None.
+
+    &#34;&#34;&#34;
+    masked_grid = np.ma.masked_where((grid == nodata), grid)
+    plt.figure()
+    plt.title(name)
+    plt.imshow(masked_grid, cmap=cmap)
+    plt.colorbar()</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="frmod.analysis.FRAnalysis"><code class="flex name class">
+<span>class <span class="ident">FRAnalysis</span></span>
+<span>(</span><span>ls_mask, var_list)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Frequency ratio analysis of a LandslideMask and a list of VRasters.</p>
+<p>Create the FRAnalysis object.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>ls_mask</code></strong> :&ensp;<code><a title="frmod.analysis.LandslideMask" href="#frmod.analysis.LandslideMask">LandslideMask</a></code></dt>
+<dd>The LandslideMask object for the analysis.</dd>
+<dt><strong><code>var_list</code></strong> :&ensp;<code>list</code></dt>
+<dd>List of VRaster objects to be analyzed.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>None.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class FRAnalysis():
+    &#34;&#34;&#34;Frequency ratio analysis of a LandslideMask and a list of VRasters.&#34;&#34;&#34;
+
+    def __init__(self, ls_mask, var_list):
+        &#34;&#34;&#34;
+        Create the FRAnalysis object.
+
+        Parameters
+        ----------
+        ls_mask : LandslideMask
+            The LandslideMask object for the analysis.
+        var_list : list
+            List of VRaster objects to be analyzed.
+
+        Returns
+        -------
+        None.
+
+        &#34;&#34;&#34;
+        # Input LandslideMask
+        self.ls_mask = ls_mask
+        # List of input VRasters
+        self.var_list = var_list
+        # Number of VRasters
+        self.var_count = len(var_list)
+        # Score: average estimated susceptibility of the validation cells.
+        self.score = 0
+        # Percentile bins of the fresult
+        self.ranks = None
+        # Final result, the mean estimated susceptibility map over the folds.
+        self.fresult = None
+        # Mean value of the validation cells of the fold
+        self.fold_scores = []
+        #
+        self.valid_perc = []
+        # The distributions of % ranks for the validation cells.
+        self.v_dist = []
+        # Bins for the above v_dist
+        self.v_bins = []
+        # Frequency ratio analysis results for each VRaster and fold.
+        self.stats = {}
+        # List of success rates for the folds.
+        self.success_rates = None
+        # pandas DataFrame of the success rates for the folds.
+        self.src_df = None
+        # Reclassified grids for each fold and variable
+        self.rc_folds = [self.run_analysis(v, self.ls_mask)
+                         for v in self.var_list]
+
+    def run_analysis(self, vrr, lsm):
+        &#34;&#34;&#34;
+        Frequency ratio analysis of one VRaster and the LandslideMask folds.
+
+        Parameters
+        ----------
+        vrr : VRaster
+            Supplies the grid and other parameters for the
+            get_freq_ratios function.
+        lsm : LandslideMask
+            Supplies the input masks for the get_freq_ratios functions.
+
+        Returns
+        -------
+        rc_folds : ndarray
+            The reclassified grids after the frequency ratio analysis of the
+            VRaster and each fold of the LandslideMask.
+            Shape: (self.var_count, lsm.fold_count, vrr.shape[0], vrr.shape[1])
+
+        &#34;&#34;&#34;
+        rc_folds = []
+        all_frq_ratios = []
+        all_hst_bins = []
+        # Run the analysis with the training areas of the different folds
+        for msk in lsm.train_areas:
+            frq_ratios, hst_bins = get_freq_ratios(vr=vrr.grid,
+                                                   mask=msk,
+                                                   binc=vrr.bins,
+                                                   nodata=vrr.nodata,
+                                                   categorical=vrr.categorical,
+                                                   normalize=False
+                                                   )
+            # Prepare the statistics DataFrame
+            all_frq_ratios.append(frq_ratios)
+            all_hst_bins.append(hst_bins)
+            # Reclassify the VRaster.grid
+            reclassed = reclass_raster(vrr.grid, frq_ratios, hst_bins)
+            # Append the reclassified VRaster.grid to rc_folds
+            rc_folds.append(reclassed)
+        mn = all_hst_bins[0][:-1]
+        mx = all_hst_bins[0][1:]
+        # Creating the pd.DataFrame for the statistics
+        stat_df = pd.DataFrame({(vrr.name+&#39;_min&#39;): mn, (vrr.name+&#39;_max&#39;): mx})
+        for i in range(0, lsm.fold_count):
+            cname = &#34;fold_&#34;+str(i+1)
+            stat_df.insert(i+2, cname, all_frq_ratios[i])
+        # Add the stats pd.DataFrame to the stats dict
+        self.stats[vrr.name] = stat_df
+        return rc_folds
+
+    def get_result(self):
+        &#34;&#34;&#34;
+        Get the susceptibility estimation, ranks, and model scoring.
+
+        Returns
+        -------
+        self.ranks : ndarray
+            Numpy array (101,) with the percentile bins.
+
+        &#34;&#34;&#34;
+        rc_folds = self.rc_folds
+        valid_positions = self.ls_mask.valid_positions
+        result = []
+        # percentile bins
+        pb = [x * 0.01 for x in range(0, 101)]
+        # Iterate over the folds of the ls_mask.
+        for i in range(0, self.ls_mask.fold_count):
+            fold_result = np.zeros(rc_folds[0][0].shape)
+            # Iterate over the reclassified grids of fold #i
+            for j in rc_folds:
+                # Average the reclassified  grids of fold #i.
+                fold_result += j[i] / self.var_count
+
+            # Scoring
+            valid_perc = np.quantile(fold_result[fold_result &gt;= 0],
+                                     pb,
+                                     interpolation=&#39;nearest&#39;)
+            self.valid_perc.append(valid_perc)
+            v_to_score = fold_result[valid_positions[i]]
+            v_dist, v_bins = np.histogram(v_to_score,
+                                          valid_perc,
+                                          density=False)
+            v_dist = np.array(v_dist)
+            v_dist = v_dist / sum(v_dist)
+            # Append the probability density function to vdist
+            self.v_dist.append(v_dist)
+            self.v_bins.append(v_bins)
+            # Mean estimated susceptibility of the validation cells of fold #i
+            vmean = np.mean(v_to_score)
+            self.fold_scores.append(vmean)
+            result.append(fold_result)
+            self.score += vmean
+            vstd = np.std(v_to_score)
+            print(vmean, vstd, sep=&#34;;&#34;)
+
+        # fresult: cell by cell average of the result array
+        fresult = sum(result) / self.ls_mask.fold_count
+
+        # Assigning the results from the validation folds to the location
+        # of the landslide mask
+        for i in range(0, self.ls_mask.fold_count):
+            fresult[valid_positions[i]] = result[i][valid_positions[i]]
+        # Set invalid values to -99999 (nodata)
+        fresult[fresult &lt; 0] = -99999
+
+        self.fresult = fresult
+        self.score /= self.ls_mask.fold_count
+        print(&#34;Score: &#34;, self.score)
+        percentiles = [i*0.01 for i in range(0, 101)]
+        self.ranks = np.quantile(fresult[fresult &gt; 0], percentiles)
+        return self.ranks
+
+    def get_src(self):
+        &#34;&#34;&#34;
+        Get success rate arrays for the folds.
+
+        Returns
+        -------
+        success_rates : ndarray
+            Cumulative sum of the v_dist arrays of the folds.
+
+        &#34;&#34;&#34;
+        success_rates = []
+        for i in self.v_dist:
+            success_rates.append(np.cumsum(i))
+        self.success_rates = success_rates
+        # Create the dataframe
+        percentiles = [i + 1 for i in range(0, 100)]
+        src_df = pd.DataFrame({&#34;percentile&#34;: percentiles})
+        for i in range(0, self.ls_mask.fold_count):
+            cname = &#34;fold_&#34;+str(i+1)
+            src_df.insert(i+1, cname, success_rates[i])
+        self.src_df = src_df
+        return success_rates
+
+    def save_src(self, folder=&#34;./output/&#34;, fname=&#34;src.csv&#34;):
+        &#34;&#34;&#34;
+        Save the success rates as csv.
+
+        Parameters
+        ----------
+        folder : str, optional
+            Path to the output folder. The default is &#34;./output/&#34;.
+        fname : str, optional
+            Output filename with extension. The default is &#34;src.csv&#34;.
+
+        Returns
+        -------
+        None.
+
+        &#34;&#34;&#34;
+        if os.path.isdir(folder) is False:
+            os.makedirs(folder)
+        output_path = folder+fname
+        self.src_df.to_csv(output_path)
+
+    def save_stats(self, folder=&#34;./output/&#34;, tag=&#34;&#34;):
+        &#34;&#34;&#34;
+        Save the frequency ratio statistics for each VRaster and fold.
+
+        Parameters
+        ----------
+        folder : str, optional
+            Path to the output folder. The default is &#34;./output/&#34;.
+        tag : str, optional
+            Tag inserted to the beginning of the file name.
+            The default is &#34;&#34;.
+
+        Returns
+        -------
+        None.
+
+        &#34;&#34;&#34;
+        # Create the folder directory if it doesn&#39;t exist.
+        if os.path.isdir(folder) is False:
+            os.makedirs(folder)
+
+        output_path = folder+tag
+        for k, v in self.stats.items():
+            v.to_csv(output_path+&#34;_{}.csv&#34;.format(str(k)))
+
+    def show_results(self, cmap=&#39;viridis&#39;):
+        &#34;&#34;&#34;
+        Plot fresult.
+
+        Parameters
+        ----------
+        cmap : str, optional
+            Must be the name of a built-in Matplotlib colormap.
+            The default is &#39;viridis&#39;.
+
+        Returns
+        -------
+        None.
+
+        &#34;&#34;&#34;
+        if self.fresult.any(None):
+            show_grid(self.fresult, -99999, name=&#39;Estimated susceptibility&#39;)
+        else:
+            print(&#34;Use get_result() first!&#34;)</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="frmod.analysis.FRAnalysis.get_result"><code class="name flex">
+<span>def <span class="ident">get_result</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get the susceptibility estimation, ranks, and model scoring.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>self.ranks : ndarray</code></dt>
+<dd>Numpy array (101,) with the percentile bins.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_result(self):
+    &#34;&#34;&#34;
+    Get the susceptibility estimation, ranks, and model scoring.
+
+    Returns
+    -------
+    self.ranks : ndarray
+        Numpy array (101,) with the percentile bins.
+
+    &#34;&#34;&#34;
+    rc_folds = self.rc_folds
+    valid_positions = self.ls_mask.valid_positions
+    result = []
+    # percentile bins
+    pb = [x * 0.01 for x in range(0, 101)]
+    # Iterate over the folds of the ls_mask.
+    for i in range(0, self.ls_mask.fold_count):
+        fold_result = np.zeros(rc_folds[0][0].shape)
+        # Iterate over the reclassified grids of fold #i
+        for j in rc_folds:
+            # Average the reclassified  grids of fold #i.
+            fold_result += j[i] / self.var_count
+
+        # Scoring
+        valid_perc = np.quantile(fold_result[fold_result &gt;= 0],
+                                 pb,
+                                 interpolation=&#39;nearest&#39;)
+        self.valid_perc.append(valid_perc)
+        v_to_score = fold_result[valid_positions[i]]
+        v_dist, v_bins = np.histogram(v_to_score,
+                                      valid_perc,
+                                      density=False)
+        v_dist = np.array(v_dist)
+        v_dist = v_dist / sum(v_dist)
+        # Append the probability density function to vdist
+        self.v_dist.append(v_dist)
+        self.v_bins.append(v_bins)
+        # Mean estimated susceptibility of the validation cells of fold #i
+        vmean = np.mean(v_to_score)
+        self.fold_scores.append(vmean)
+        result.append(fold_result)
+        self.score += vmean
+        vstd = np.std(v_to_score)
+        print(vmean, vstd, sep=&#34;;&#34;)
+
+    # fresult: cell by cell average of the result array
+    fresult = sum(result) / self.ls_mask.fold_count
+
+    # Assigning the results from the validation folds to the location
+    # of the landslide mask
+    for i in range(0, self.ls_mask.fold_count):
+        fresult[valid_positions[i]] = result[i][valid_positions[i]]
+    # Set invalid values to -99999 (nodata)
+    fresult[fresult &lt; 0] = -99999
+
+    self.fresult = fresult
+    self.score /= self.ls_mask.fold_count
+    print(&#34;Score: &#34;, self.score)
+    percentiles = [i*0.01 for i in range(0, 101)]
+    self.ranks = np.quantile(fresult[fresult &gt; 0], percentiles)
+    return self.ranks</code></pre>
+</details>
+</dd>
+<dt id="frmod.analysis.FRAnalysis.get_src"><code class="name flex">
+<span>def <span class="ident">get_src</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get success rate arrays for the folds.</p>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>success_rates</code></strong> :&ensp;<code>ndarray</code></dt>
+<dd>Cumulative sum of the v_dist arrays of the folds.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_src(self):
+    &#34;&#34;&#34;
+    Get success rate arrays for the folds.
+
+    Returns
+    -------
+    success_rates : ndarray
+        Cumulative sum of the v_dist arrays of the folds.
+
+    &#34;&#34;&#34;
+    success_rates = []
+    for i in self.v_dist:
+        success_rates.append(np.cumsum(i))
+    self.success_rates = success_rates
+    # Create the dataframe
+    percentiles = [i + 1 for i in range(0, 100)]
+    src_df = pd.DataFrame({&#34;percentile&#34;: percentiles})
+    for i in range(0, self.ls_mask.fold_count):
+        cname = &#34;fold_&#34;+str(i+1)
+        src_df.insert(i+1, cname, success_rates[i])
+    self.src_df = src_df
+    return success_rates</code></pre>
+</details>
+</dd>
+<dt id="frmod.analysis.FRAnalysis.run_analysis"><code class="name flex">
+<span>def <span class="ident">run_analysis</span></span>(<span>self, vrr, lsm)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Frequency ratio analysis of one VRaster and the LandslideMask folds.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>vrr</code></strong> :&ensp;<code><a title="frmod.analysis.VRaster" href="#frmod.analysis.VRaster">VRaster</a></code></dt>
+<dd>Supplies the grid and other parameters for the
+get_freq_ratios function.</dd>
+<dt><strong><code>lsm</code></strong> :&ensp;<code><a title="frmod.analysis.LandslideMask" href="#frmod.analysis.LandslideMask">LandslideMask</a></code></dt>
+<dd>Supplies the input masks for the get_freq_ratios functions.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>rc_folds</code></strong> :&ensp;<code>ndarray</code></dt>
+<dd>The reclassified grids after the frequency ratio analysis of the
+VRaster and each fold of the LandslideMask.
+Shape: (self.var_count, lsm.fold_count, vrr.shape[0], vrr.shape[1])</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def run_analysis(self, vrr, lsm):
+    &#34;&#34;&#34;
+    Frequency ratio analysis of one VRaster and the LandslideMask folds.
+
+    Parameters
+    ----------
+    vrr : VRaster
+        Supplies the grid and other parameters for the
+        get_freq_ratios function.
+    lsm : LandslideMask
+        Supplies the input masks for the get_freq_ratios functions.
+
+    Returns
+    -------
+    rc_folds : ndarray
+        The reclassified grids after the frequency ratio analysis of the
+        VRaster and each fold of the LandslideMask.
+        Shape: (self.var_count, lsm.fold_count, vrr.shape[0], vrr.shape[1])
+
+    &#34;&#34;&#34;
+    rc_folds = []
+    all_frq_ratios = []
+    all_hst_bins = []
+    # Run the analysis with the training areas of the different folds
+    for msk in lsm.train_areas:
+        frq_ratios, hst_bins = get_freq_ratios(vr=vrr.grid,
+                                               mask=msk,
+                                               binc=vrr.bins,
+                                               nodata=vrr.nodata,
+                                               categorical=vrr.categorical,
+                                               normalize=False
+                                               )
+        # Prepare the statistics DataFrame
+        all_frq_ratios.append(frq_ratios)
+        all_hst_bins.append(hst_bins)
+        # Reclassify the VRaster.grid
+        reclassed = reclass_raster(vrr.grid, frq_ratios, hst_bins)
+        # Append the reclassified VRaster.grid to rc_folds
+        rc_folds.append(reclassed)
+    mn = all_hst_bins[0][:-1]
+    mx = all_hst_bins[0][1:]
+    # Creating the pd.DataFrame for the statistics
+    stat_df = pd.DataFrame({(vrr.name+&#39;_min&#39;): mn, (vrr.name+&#39;_max&#39;): mx})
+    for i in range(0, lsm.fold_count):
+        cname = &#34;fold_&#34;+str(i+1)
+        stat_df.insert(i+2, cname, all_frq_ratios[i])
+    # Add the stats pd.DataFrame to the stats dict
+    self.stats[vrr.name] = stat_df
+    return rc_folds</code></pre>
+</details>
+</dd>
+<dt id="frmod.analysis.FRAnalysis.save_src"><code class="name flex">
+<span>def <span class="ident">save_src</span></span>(<span>self, folder='./output/', fname='src.csv')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Save the success rates as csv.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>folder</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>Path to the output folder. The default is "./output/".</dd>
+<dt><strong><code>fname</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>Output filename with extension. The default is "src.csv".</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>None.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def save_src(self, folder=&#34;./output/&#34;, fname=&#34;src.csv&#34;):
+    &#34;&#34;&#34;
+    Save the success rates as csv.
+
+    Parameters
+    ----------
+    folder : str, optional
+        Path to the output folder. The default is &#34;./output/&#34;.
+    fname : str, optional
+        Output filename with extension. The default is &#34;src.csv&#34;.
+
+    Returns
+    -------
+    None.
+
+    &#34;&#34;&#34;
+    if os.path.isdir(folder) is False:
+        os.makedirs(folder)
+    output_path = folder+fname
+    self.src_df.to_csv(output_path)</code></pre>
+</details>
+</dd>
+<dt id="frmod.analysis.FRAnalysis.save_stats"><code class="name flex">
+<span>def <span class="ident">save_stats</span></span>(<span>self, folder='./output/', tag='')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Save the frequency ratio statistics for each VRaster and fold.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>folder</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>Path to the output folder. The default is "./output/".</dd>
+<dt><strong><code>tag</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>Tag inserted to the beginning of the file name.
+The default is "".</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>None.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def save_stats(self, folder=&#34;./output/&#34;, tag=&#34;&#34;):
+    &#34;&#34;&#34;
+    Save the frequency ratio statistics for each VRaster and fold.
+
+    Parameters
+    ----------
+    folder : str, optional
+        Path to the output folder. The default is &#34;./output/&#34;.
+    tag : str, optional
+        Tag inserted to the beginning of the file name.
+        The default is &#34;&#34;.
+
+    Returns
+    -------
+    None.
+
+    &#34;&#34;&#34;
+    # Create the folder directory if it doesn&#39;t exist.
+    if os.path.isdir(folder) is False:
+        os.makedirs(folder)
+
+    output_path = folder+tag
+    for k, v in self.stats.items():
+        v.to_csv(output_path+&#34;_{}.csv&#34;.format(str(k)))</code></pre>
+</details>
+</dd>
+<dt id="frmod.analysis.FRAnalysis.show_results"><code class="name flex">
+<span>def <span class="ident">show_results</span></span>(<span>self, cmap='viridis')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Plot fresult.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>cmap</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>Must be the name of a built-in Matplotlib colormap.
+The default is 'viridis'.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>None.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def show_results(self, cmap=&#39;viridis&#39;):
+    &#34;&#34;&#34;
+    Plot fresult.
+
+    Parameters
+    ----------
+    cmap : str, optional
+        Must be the name of a built-in Matplotlib colormap.
+        The default is &#39;viridis&#39;.
+
+    Returns
+    -------
+    None.
+
+    &#34;&#34;&#34;
+    if self.fresult.any(None):
+        show_grid(self.fresult, -99999, name=&#39;Estimated susceptibility&#39;)
+    else:
+        print(&#34;Use get_result() first!&#34;)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="frmod.analysis.LandslideMask"><code class="flex name class">
+<span>class <span class="ident">LandslideMask</span></span>
+<span>(</span><span>name, path, ls_marker=1, nls_marker=0, fold_count=5)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>LandslideMask.</p>
+<p>Create a LandslideMask object.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
+<dd>Name of the landslide mask.</dd>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>Path to the file used as the mask in the analysis.</dd>
+<dt><strong><code>ls_marker</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>Value marking the landslide pixels.
+The default is 1.</dd>
+<dt><strong><code>nls_marker</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>Value marking the non-landslide pixels.
+Must be different from the nodata value.
+The default is 0.</dd>
+<dt><strong><code>fold_count</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>The number of cross validation folds. The default is 5.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>None.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class LandslideMask():
+    &#34;&#34;&#34;LandslideMask.&#34;&#34;&#34;
+
+    def __init__(self, name, path, ls_marker=1, nls_marker=0, fold_count=5):
+        &#34;&#34;&#34;
+        Create a LandslideMask object.
+
+        Parameters
+        ----------
+        name : str
+            Name of the landslide mask.
+        path : str
+            Path to the file used as the mask in the analysis.
+        ls_marker : int, optional
+            Value marking the landslide pixels.
+            The default is 1.
+        nls_marker : int, optional
+            Value marking the non-landslide pixels.
+            Must be different from the nodata value.
+            The default is 0.
+        fold_count : int, optional
+            The number of cross validation folds. The default is 5.
+
+        Returns
+        -------
+        None.
+
+        &#34;&#34;&#34;
+        # Name of the LandslideMask
+        self.name = name
+        # Path to the input mask file.
+        self.path = path
+        # NoData value of the input mask file.
+        self.nodata = utils.get_nodata_value(path)
+        # 2D array representation of the input mask file.
+        self.grid = utils.raster2array(path)
+        # Value marking the landslide cells.
+        self.ls_marker = ls_marker
+        # Value marking the non-landslide cells. Different from nodata!
+        self.nls_marker = nls_marker
+        # Number of folds
+        self.fold_count = fold_count
+        # (fold_count no. of (2, n) size arrays) with the split positions
+        self.split_locations = self.get_splits(folds=self.fold_count)
+        # List of (train_areas, valid_positions) ndarray pairs.
+        self.t_v = [self.get_train_area(a) for a in self.split_locations]
+        # Training areas (1), validation cells count as non-landslide.
+        # Input mask for get_freq_ratios.
+        self.train_areas = [t_v[0] for t_v in self.t_v]
+        # Positions of the validation cells.
+        self.valid_positions = [t_v[1] for t_v in self.t_v]
+
+    def get_splits(self, folds=5):
+        &#34;&#34;&#34;
+        Split the mask for cross validation.
+
+        Parameters
+        ----------
+        folds : TYPE, optional
+            Number of desired folds. The default is 5.
+
+        Returns
+        -------
+        split_locations : list of ndarrays
+            (fold_count no. of (2, n) size arrays) with the split positions.
+
+        &#34;&#34;&#34;
+        valid = np.array(np.nonzero(self.grid == self.ls_marker))
+        valid_transposed = valid.T
+        np.random.shuffle(valid_transposed)
+        valid_transposed_split = np.array_split(valid_transposed, folds)
+        split_locations = [i.T for i in valid_transposed_split]
+        return split_locations
+
+    def get_train_area(self, split_to_omit):
+        &#34;&#34;&#34;
+        Get the train_area grid and validation cell positions.
+
+        Parameters
+        ----------
+        split_to_omit : list
+            List containing the position of the validation cells. It is
+            used construct the valid_position array. Cells marked here
+            are turned into non-landslide cells.
+
+        Returns
+        -------
+        train_area : list
+            DESCRIPTION.
+        valid_position : list
+            Lists the positions of the validation cells for the folds.
+
+        &#34;&#34;&#34;
+        train_area = np.copy(self.grid)
+        valid_position = (split_to_omit[0], split_to_omit[1])
+        train_area[valid_position] = self.nls_marker
+        return train_area, valid_position
+
+
+    def show(self, cmap=&#39;Accent&#39;):
+        &#34;&#34;&#34;
+        Plot the LandslideMask.grid.
+
+        Parameters
+        ----------
+        cmap : str, optional
+            Must be the name of a built-in Matplotlib colormap.
+            The default is &#39;Accent&#39;.
+
+        Returns
+        -------
+        None.
+
+        &#34;&#34;&#34;
+        show_grid(self.grid, self.nodata, name=self.name, cmap=cmap)</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="frmod.analysis.LandslideMask.get_splits"><code class="name flex">
+<span>def <span class="ident">get_splits</span></span>(<span>self, folds=5)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Split the mask for cross validation.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>folds</code></strong> :&ensp;<code>TYPE</code>, optional</dt>
+<dd>Number of desired folds. The default is 5.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>split_locations</code></strong> :&ensp;<code>list</code> of <code>ndarrays</code></dt>
+<dd>(fold_count no. of (2, n) size arrays) with the split positions.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_splits(self, folds=5):
+    &#34;&#34;&#34;
+    Split the mask for cross validation.
+
+    Parameters
+    ----------
+    folds : TYPE, optional
+        Number of desired folds. The default is 5.
+
+    Returns
+    -------
+    split_locations : list of ndarrays
+        (fold_count no. of (2, n) size arrays) with the split positions.
+
+    &#34;&#34;&#34;
+    valid = np.array(np.nonzero(self.grid == self.ls_marker))
+    valid_transposed = valid.T
+    np.random.shuffle(valid_transposed)
+    valid_transposed_split = np.array_split(valid_transposed, folds)
+    split_locations = [i.T for i in valid_transposed_split]
+    return split_locations</code></pre>
+</details>
+</dd>
+<dt id="frmod.analysis.LandslideMask.get_train_area"><code class="name flex">
+<span>def <span class="ident">get_train_area</span></span>(<span>self, split_to_omit)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get the train_area grid and validation cell positions.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>split_to_omit</code></strong> :&ensp;<code>list</code></dt>
+<dd>List containing the position of the validation cells. It is
+used construct the valid_position array. Cells marked here
+are turned into non-landslide cells.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><strong><code>train_area</code></strong> :&ensp;<code>list</code></dt>
+<dd>DESCRIPTION.</dd>
+<dt><strong><code>valid_position</code></strong> :&ensp;<code>list</code></dt>
+<dd>Lists the positions of the validation cells for the folds.</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_train_area(self, split_to_omit):
+    &#34;&#34;&#34;
+    Get the train_area grid and validation cell positions.
+
+    Parameters
+    ----------
+    split_to_omit : list
+        List containing the position of the validation cells. It is
+        used construct the valid_position array. Cells marked here
+        are turned into non-landslide cells.
+
+    Returns
+    -------
+    train_area : list
+        DESCRIPTION.
+    valid_position : list
+        Lists the positions of the validation cells for the folds.
+
+    &#34;&#34;&#34;
+    train_area = np.copy(self.grid)
+    valid_position = (split_to_omit[0], split_to_omit[1])
+    train_area[valid_position] = self.nls_marker
+    return train_area, valid_position</code></pre>
+</details>
+</dd>
+<dt id="frmod.analysis.LandslideMask.show"><code class="name flex">
+<span>def <span class="ident">show</span></span>(<span>self, cmap='Accent')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Plot the LandslideMask.grid.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>cmap</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>Must be the name of a built-in Matplotlib colormap.
+The default is 'Accent'.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>None.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def show(self, cmap=&#39;Accent&#39;):
+    &#34;&#34;&#34;
+    Plot the LandslideMask.grid.
+
+    Parameters
+    ----------
+    cmap : str, optional
+        Must be the name of a built-in Matplotlib colormap.
+        The default is &#39;Accent&#39;.
+
+    Returns
+    -------
+    None.
+
+    &#34;&#34;&#34;
+    show_grid(self.grid, self.nodata, name=self.name, cmap=cmap)</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="frmod.analysis.VRaster"><code class="flex name class">
+<span>class <span class="ident">VRaster</span></span>
+<span>(</span><span>name, path, bins=10, categorical=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Variable raster, input for frequency ratio analysis.</p>
+<p>Create the VRaster object.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>name</code></strong> :&ensp;<code>str</code></dt>
+<dd>Name of the VRaster.</dd>
+<dt><strong><code>path</code></strong> :&ensp;<code>str</code></dt>
+<dd>Path to the GDAL-compatible raster file.</dd>
+<dt><strong><code>bins</code></strong> :&ensp;<code>int</code>, optional</dt>
+<dd>Number of histogram bins. The default is 10.</dd>
+<dt><strong><code>categorical</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>True if it is a categorical variable, eg: geology.
+The default is False.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>None.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class VRaster():
+    &#34;&#34;&#34;Variable raster, input for frequency ratio analysis.&#34;&#34;&#34;
+
+    def __init__(self, name, path, bins=10, categorical=False):
+        &#34;&#34;&#34;
+        Create the VRaster object.
+
+        Parameters
+        ----------
+        name : str
+            Name of the VRaster.
+        path : str
+            Path to the GDAL-compatible raster file.
+        bins : int, optional
+            Number of histogram bins. The default is 10.
+        categorical : bool, optional
+            True if it is a categorical variable, eg: geology.
+            The default is False.
+
+        Returns
+        -------
+        None.
+
+        &#34;&#34;&#34;
+        self.name = name
+        self.path = path
+        self.bins = bins
+        self.categorical = categorical
+        self.nodata = utils.get_nodata_value(path)
+        # Convert input grid to array
+        self.grid = utils.raster2array(path)
+        # Calculate basic statistics for the grid
+        self.min = min(self.grid[self.grid != self.nodata])
+        self.max = max(self.grid[self.grid != self.nodata])
+        self.limits = (self.min, self.max)
+
+    def show(self, cmap=&#39;viridis&#39;):
+        &#34;&#34;&#34;
+        Plot the VRaster.grid.
+
+        Parameters
+        ----------
+        cmap : str, optional
+            Must be the name of a built-in Matplotlib colormap.
+            The default is &#39;viridis&#39;.
+
+        Returns
+        -------
+        None.
+
+        &#34;&#34;&#34;
+        show_grid(self.grid, self.nodata, name=self.name, cmap=cmap)
+
+    def show_info(self):
+        &#34;&#34;&#34;
+        Show basic information about the VRaster.grid.
+
+        Returns
+        -------
+        None.
+
+        &#34;&#34;&#34;
+        valid_values = self.grid[self.grid != self.nodata]
+        if self.categorical:
+            print(&#34;Categorical!&#34;)
+        else:
+            average = np.mean(valid_values)
+            sdev = np.std(valid_values)
+            print(&#34;Name: {} Limits: {}&#34;.format(self.name, self.limits))
+            print(&#34;Mean: {} Standard deviation: {}&#34;.format(average, sdev))</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="frmod.analysis.VRaster.show"><code class="name flex">
+<span>def <span class="ident">show</span></span>(<span>self, cmap='viridis')</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Plot the VRaster.grid.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>cmap</code></strong> :&ensp;<code>str</code>, optional</dt>
+<dd>Must be the name of a built-in Matplotlib colormap.
+The default is 'viridis'.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>None.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def show(self, cmap=&#39;viridis&#39;):
+    &#34;&#34;&#34;
+    Plot the VRaster.grid.
+
+    Parameters
+    ----------
+    cmap : str, optional
+        Must be the name of a built-in Matplotlib colormap.
+        The default is &#39;viridis&#39;.
+
+    Returns
+    -------
+    None.
+
+    &#34;&#34;&#34;
+    show_grid(self.grid, self.nodata, name=self.name, cmap=cmap)</code></pre>
+</details>
+</dd>
+<dt id="frmod.analysis.VRaster.show_info"><code class="name flex">
+<span>def <span class="ident">show_info</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Show basic information about the VRaster.grid.</p>
+<h2 id="returns">Returns</h2>
+<p>None.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def show_info(self):
+    &#34;&#34;&#34;
+    Show basic information about the VRaster.grid.
+
+    Returns
+    -------
+    None.
+
+    &#34;&#34;&#34;
+    valid_values = self.grid[self.grid != self.nodata]
+    if self.categorical:
+        print(&#34;Categorical!&#34;)
+    else:
+        average = np.mean(valid_values)
+        sdev = np.std(valid_values)
+        print(&#34;Name: {} Limits: {}&#34;.format(self.name, self.limits))
+        print(&#34;Mean: {} Standard deviation: {}&#34;.format(average, sdev))</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="frmod" href="index.html">frmod</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="frmod.analysis.get_freq_ratios" href="#frmod.analysis.get_freq_ratios">get_freq_ratios</a></code></li>
+<li><code><a title="frmod.analysis.reclass_raster" href="#frmod.analysis.reclass_raster">reclass_raster</a></code></li>
+<li><code><a title="frmod.analysis.show_grid" href="#frmod.analysis.show_grid">show_grid</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="frmod.analysis.FRAnalysis" href="#frmod.analysis.FRAnalysis">FRAnalysis</a></code></h4>
+<ul class="two-column">
+<li><code><a title="frmod.analysis.FRAnalysis.get_result" href="#frmod.analysis.FRAnalysis.get_result">get_result</a></code></li>
+<li><code><a title="frmod.analysis.FRAnalysis.get_src" href="#frmod.analysis.FRAnalysis.get_src">get_src</a></code></li>
+<li><code><a title="frmod.analysis.FRAnalysis.run_analysis" href="#frmod.analysis.FRAnalysis.run_analysis">run_analysis</a></code></li>
+<li><code><a title="frmod.analysis.FRAnalysis.save_src" href="#frmod.analysis.FRAnalysis.save_src">save_src</a></code></li>
+<li><code><a title="frmod.analysis.FRAnalysis.save_stats" href="#frmod.analysis.FRAnalysis.save_stats">save_stats</a></code></li>
+<li><code><a title="frmod.analysis.FRAnalysis.show_results" href="#frmod.analysis.FRAnalysis.show_results">show_results</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="frmod.analysis.LandslideMask" href="#frmod.analysis.LandslideMask">LandslideMask</a></code></h4>
+<ul class="">
+<li><code><a title="frmod.analysis.LandslideMask.get_splits" href="#frmod.analysis.LandslideMask.get_splits">get_splits</a></code></li>
+<li><code><a title="frmod.analysis.LandslideMask.get_train_area" href="#frmod.analysis.LandslideMask.get_train_area">get_train_area</a></code></li>
+<li><code><a title="frmod.analysis.LandslideMask.show" href="#frmod.analysis.LandslideMask.show">show</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="frmod.analysis.VRaster" href="#frmod.analysis.VRaster">VRaster</a></code></h4>
+<ul class="">
+<li><code><a title="frmod.analysis.VRaster.show" href="#frmod.analysis.VRaster.show">show</a></code></li>
+<li><code><a title="frmod.analysis.VRaster.show_info" href="#frmod.analysis.VRaster.show_info">show_info</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+</footer>
+</body>
+</html>
