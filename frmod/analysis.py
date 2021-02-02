@@ -1,8 +1,7 @@
 """
 Frequency ratio model analysis.
 
-Created on Wed Jul 15 19:45:41 2020
-
+Perform a landslide susceptibility analysis with the frequency ratio method.
 @author: Dávid Gerzsenyi
 """
 
@@ -303,21 +302,24 @@ class LandslideMask():
 
     def get_train_area(self, split_to_omit):
         """
-        Get the train_area grid and validation cell positions.
+        Get the train_area grid and the validation cell positions.
 
         Parameters
         ----------
         split_to_omit : list
-            List containing the position of the validation cells. It is
-            used construct the valid_position array. Cells marked here
+            List of the position of the validation cells. It is used
+            to construct the valid_position array. Cells marked here
             are turned into non-landslide cells.
 
         Returns
         -------
         train_area : list
-            DESCRIPTION.
+            List of train area grids. Similar format to the self.grid.
         valid_position : list
             Lists the positions of the validation cells for the folds.
+            Positions are given as two arrays:
+                1st: row index increasing from top to bottom.
+                2nd: column index increasing from left to right.
 
         """
         train_area = np.copy(self.grid)
