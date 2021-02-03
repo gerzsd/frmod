@@ -1,8 +1,7 @@
 """
 Frequency ratio model analysis.
 
-Created on Wed Jul 15 19:45:41 2020
-
+Perform a landslide susceptibility analysis with the frequency ratio method.
 @author: Dávid Gerzsenyi
 """
 
@@ -153,6 +152,7 @@ def show_grid(grid, nodata, name='Grid', cmap='viridis'):
     plt.title(name)
     plt.imshow(masked_grid, cmap=cmap)
     plt.colorbar()
+    plt.show()
 
 
 class VRaster():
@@ -303,21 +303,24 @@ class LandslideMask():
 
     def get_train_area(self, split_to_omit):
         """
-        Get the train_area grid and validation cell positions.
+        Get the train_area grid and the validation cell positions.
 
         Parameters
         ----------
         split_to_omit : list
-            List containing the position of the validation cells. It is
-            used construct the valid_position array. Cells marked here
+            List of the position of the validation cells. It is used
+            to construct the valid_position array. Cells marked here
             are turned into non-landslide cells.
 
         Returns
         -------
         train_area : list
-            DESCRIPTION.
+            List of train area grids. Similar format to the self.grid.
         valid_position : list
             Lists the positions of the validation cells for the folds.
+            Positions are given as two arrays:
+                1st: row index increasing from top to bottom.
+                2nd: column index increasing from left to right.
 
         """
         train_area = np.copy(self.grid)
@@ -592,3 +595,15 @@ class FRAnalysis():
             show_grid(self.fresult, -99999, name='Estimated susceptibility')
         else:
             print("Use get_result() first!")
+
+    def plot_success_rates(self):
+        fig, ax = plt.subplots()
+        label = 1
+        for i in self.success_rates:
+            ax.plot(i, label=label)
+            label += 1
+        ax.set_xlim(left=0, right=99)
+        ax.set_ylim(bottom=0, top=1.0)
+        diag_line, = ax.plot(ax.get_xlim(), ax.get_ylim(), ls="--", c=".3")
+        ax.legend()
+        plt.show()

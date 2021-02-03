@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SAGA_METADATA>
+  <DATABASE></DATABASE>
+  <SOURCE></SOURCE>
+  <HISTORY saga-version="7.6.4">
+    <TOOL library="grid_calculus" id="9" name="Grids Product">
+      <OPTION type="grid_system" id="PARAMETERS_GRID_SYSTEM" name="Grid System">
+        <CELLSIZE>31</CELLSIZE>
+        <XMIN>593309</XMIN>
+        <XMAX>626262</XMAX>
+        <YMIN>255688</YMIN>
+        <YMAX>270382</YMAX>
+      </OPTION>
+      <OPTION type="boolean" id="NODATA" name="Count No Data as Zero">false</OPTION>
+      <INPUT_LIST type="grid_list" id="GRIDS" name="Grids" system="PARAMETERS_GRID_SYSTEM">
+        <INPUT type="grid_list" id="GRIDS" name="Grids" system="PARAMETERS_GRID_SYSTEM"/>
+        <INPUT type="grid_list" id="GRIDS" name="Grids" system="PARAMETERS_GRID_SYSTEM">
+          <FILE>G:\UNKP_2019\adatok\fr-modeller-data\FreqRatPython\frp_alapadatok.sprj\fdtMask_MO.sgrd</FILE>
+        </INPUT>
+      </INPUT_LIST>
+      <OUTPUT type="grid" id="RESULT" name="Product">Product</OUTPUT>
+    </TOOL>
+  </HISTORY>
+  <PROJECTION>
+    <OGC_WKT>PROJCS["Hotine_Oblique_Mercator",GEOGCS["GCS",DATUM["Datum",SPHEROID["GRS67",6378160.0,298.2471674],TOWGS84[52.17,-71.82,-14.9,0,0,0,0]],PRIMEM["Greenwich",0],UNIT["degree",0.01745329251994328]],PROJECTION[Hotine_Oblique_Mercator],PARAMETER["latitude_of_origin",47.14439372222222 ],PARAMETER["central_meridian",19.04857177777778 ],PARAMETER["scale_factor",0.99993 ],PARAMETER["false_easting",650000 ],PARAMETER["false_northing",200000 ],UNIT["Meter",1]]</OGC_WKT>
+    <PROJ4>+proj=somerc +lat_0=47.14439372222222 +lon_0=19.04857177777778 +k_0=0.99993 +x_0=650000 +y_0=200000 +ellps=GRS67 +towgs84=52.17,-71.82,-14.9,0,0,0,0 +units=m +no_defs </PROJ4>
+    <EPSG>-1</EPSG>
+  </PROJECTION>
+  <FILE>E:\kutatas\UNKP_2019\adatok\fr-modeller-data\FreqRatPython\data\scarps-10-13.sgrd</FILE>
+  <DESCRIPTION></DESCRIPTION>
+</SAGA_METADATA>

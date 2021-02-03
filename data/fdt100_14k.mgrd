@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SAGA_METADATA>
+  <DATABASE></DATABASE>
+  <SOURCE></SOURCE>
+  <HISTORY saga-version="7.6.3">
+    <TOOL library="grid_tools" id="15" name="Reclassify Grid Values">
+      <OPTION type="grid_system" id="PARAMETERS_GRID_SYSTEM" name="Grid System">
+        <CELLSIZE>31</CELLSIZE>
+        <XMIN>593309</XMIN>
+        <XMAX>626262</XMAX>
+        <YMIN>255688</YMIN>
+        <YMAX>270382</YMAX>
+      </OPTION>
+      <OPTION type="choice" id="METHOD" name="Method" index="0">single</OPTION>
+      <OPTION type="double" id="OLD" name="Old Value">0.000000</OPTION>
+      <OPTION type="double" id="NEW" name="New Value">0.000000</OPTION>
+      <OPTION type="choice" id="SOPERATOR" name="Operator" index="0">=</OPTION>
+      <OPTION type="boolean" id="NODATAOPT" name="No Data Values">true</OPTION>
+      <OPTION type="double" id="NODATA" name="New Value">0.000000</OPTION>
+      <OPTION type="boolean" id="OTHEROPT" name="Other Values">false</OPTION>
+      <OPTION type="choice" id="RESULT_TYPE" name="Data Storage Type" index="1">1 byte unsigned integer</OPTION>
+      <OPTION type="choice" id="RESULT_NODATA_CHOICE" name="No Data Value" index="1">user defined No Data value</OPTION>
+      <OPTION type="double" id="RESULT_NODATA_VALUE" name="No Data Value">0.000000</OPTION>
+      <INPUT type="grid" id="INPUT" name="Grid" system="PARAMETERS_GRID_SYSTEM">
+        <TOOL library="grid_tools" id="15" name="Reclassify Grid Values">
+          <OPTION type="grid_system" id="PARAMETERS_GRID_SYSTEM" name="Grid System">
+            <CELLSIZE>31</CELLSIZE>
+            <XMIN>593309</XMIN>
+            <XMAX>626262</XMAX>
+            <YMIN>255688</YMIN>
+            <YMAX>270382</YMAX>
+          </OPTION>
+          <OPTION type="choice" id="METHOD" name="Method" index="0">single</OPTION>
+          <OPTION type="double" id="OLD" name="Old Value">0.000000</OPTION>
+          <OPTION type="double" id="NEW" name="New Value">0.000000</OPTION>
+          <OPTION type="choice" id="SOPERATOR" name="Operator" index="0">=</OPTION>
+          <OPTION type="boolean" id="NODATAOPT" name="No Data Values">true</OPTION>
+          <OPTION type="double" id="NODATA" name="New Value">-99999.000000</OPTION>
+          <OPTION type="boolean" id="OTHEROPT" name="Other Values">false</OPTION>
+          <OPTION type="choice" id="RESULT_TYPE" name="Data Storage Type" index="9">same as input grid</OPTION>
+          <OPTION type="choice" id="RESULT_NODATA_CHOICE" name="No Data Value" index="1">user defined No Data value</OPTION>
+          <OPTION type="double" id="RESULT_NODATA_VALUE" name="No Data Value">-99999.000000</OPTION>
+          <INPUT type="grid" id="INPUT" name="Grid" system="PARAMETERS_GRID_SYSTEM">
+            <TOOL library="grid_gridding" id="0" name="Shapes to Grid">
+              <OPTION type="table_field" id="FIELD" name="Attribute" index="13">k_szam_uj</OPTION>
+              <OPTION type="choice" id="OUTPUT" name="Output Values" index="2">attribute</OPTION>
+              <OPTION type="choice" id="MULTIPLE" name="Method for Multiple Values" index="1">last</OPTION>
+              <OPTION type="choice" id="POLY_TYPE" name="Polygon" index="1">cell</OPTION>
+              <OPTION type="choice" id="GRID_TYPE" name="Data Type" index="9">same as attribute</OPTION>
+              <OPTION type="choice" id="TARGET_DEFINITION" name="Target Grid System" index="1">grid or grid system</OPTION>
+              <OPTION type="grid_system" id="TARGET_SYSTEM" name="Grid System">
+                <CELLSIZE>31</CELLSIZE>
+                <XMIN>593309</XMIN>
+                <XMAX>626262</XMAX>
+                <YMIN>255688</YMIN>
+                <YMAX>270382</YMAX>
+              </OPTION>
+              <INPUT type="shapes" id="INPUT" name="Shapes">
+                <FILE>C:\kutatas\python_scripts\GIS_museo\FreqRatPython\frp_alapadatok.sprj\fdt_100_EG_14kat_Cleaned.shp</FILE>
+              </INPUT>
+              <OUTPUT type="grid" id="GRID" name="Grid">fdt_100_EG_14kat_Cleaned [k_szam_uj]</OUTPUT>
+            </TOOL>
+          </INPUT>
+          <OUTPUT type="grid" id="RESULT" name="Reclassified Grid">fdt_100_EG_14k_c (Reclassified)</OUTPUT>
+        </TOOL>
+      </INPUT>
+      <OUTPUT type="grid" id="RESULT" name="Reclassified Grid">fdt_100_EG_14k_c (Reclassified)</OUTPUT>
+    </TOOL>
+  </HISTORY>
+  <PROJECTION>
+    <OGC_WKT>PROJCS["HD72_EOV",GEOGCS["GCS_HD72",DATUM["D_Hungarian_1972",SPHEROID["GRS_1967",6378160,298.247167427]],PRIMEM["Greenwich",0],UNIT["Degree",0.017453292519943295]],PROJECTION["Hotine_Oblique_Mercator_Azimuth_Center"],PARAMETER["latitude_of_center",47.14439372222222],PARAMETER["longitude_of_center",19.04857177777778],PARAMETER["azimuth",90],PARAMETER["scale_factor",0.99993],PARAMETER["false_easting",650000],PARAMETER["false_northing",200000],UNIT["Meter",1]]</OGC_WKT>
+    <PROJ4>+proj=somerc +a=6378160.000000 +b=6356774.516091 +lat_0=47.14439372222222 +lon_0=19.04857177777778 +alpha=90 +k_0=0.99993 +x_0=650000 +y_0=200000 +no_defs</PROJ4>
+    <EPSG>-1</EPSG>
+  </PROJECTION>
+  <FILE>E:\kutatas\UNKP_2019\adatok\fr-modeller-data\FreqRatPython\data\fdt100_14k.sgrd</FILE>
+  <DESCRIPTION></DESCRIPTION>
+</SAGA_METADATA>
