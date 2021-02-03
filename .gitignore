@@ -150,6 +150,9 @@ dmypy.json
 # *.sgrd
 # *.mgrd
 # *.sprj
-# *.stats
+*.stats
 
 *.csv
+
+#Pylint
+/.pylint.d
