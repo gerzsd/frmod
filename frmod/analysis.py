@@ -76,11 +76,8 @@ def get_freq_ratios(vr,
                                range=glob_lim, density=False)
     ls_hst_d = ls_hst[0] / ls_area
     nls_hst_d = nls_hst[0] / nls_area
-    # global hst_bins
     hst_bins = ls_hst[1]
-    # global fr
     fr = ls_hst_d / nls_hst_d
-    # global frequency_ratios
     if normalize:
         frequency_ratios = (fr - fr.min()) / (fr.max() - fr.min())
     else:
