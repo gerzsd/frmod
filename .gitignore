@@ -139,18 +139,17 @@ dmypy.json
 # End of https://www.toptal.com/developers/gitignore/api/python
 
 # Input and outputa data folders to ignore
-/data/
 /FreqRatPython/
 /output1/
 /output/
 
 # SAGA files
-*.prj
-*.sdat
-*.sdat.aux
-*.sgrd
-*.mgrd
-*.sprj
-*.stats
+# *.prj
+# *.sdat
+# *.sdat.aux
+# *.sgrd
+# *.mgrd
+# *.sprj
+# *.stats
 
 *.csv

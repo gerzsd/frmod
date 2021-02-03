@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<SAGA_METADATA>
+  <DATABASE></DATABASE>
+  <SOURCE></SOURCE>
+  <HISTORY saga-version="7.6.3">
+    <TOOL library="grid_tools" id="24" name="Grid Masking">
+      <OPTION type="grid_system" id="PARAMETERS_GRID_SYSTEM" name="Grid System">
+        <CELLSIZE>31</CELLSIZE>
+        <XMIN>593309</XMIN>
+        <XMAX>626262</XMAX>
+        <YMIN>255688</YMIN>
+        <YMAX>270382</YMAX>
+      </OPTION>
+      <OPTION type="boolean" id="LIST" name="List Processing">true</OPTION>
+      <OPTION type="boolean" id="GRIDS_CREATE" name="Create Copies">true</OPTION>
+      <OPTION type="grid_system" id="MASK_GRIDSYSTEM" name="Grid system">
+        <CELLSIZE>31</CELLSIZE>
+        <XMIN>593309</XMIN>
+        <XMAX>626262</XMAX>
+        <YMIN>255688</YMIN>
+        <YMAX>270382</YMAX>
+      </OPTION>
+      <OPTION type="choice" id="NODATA" name="Mask Cells" index="0">no-data cells</OPTION>
+      <INPUT_LIST type="grid_list" id="GRIDS" name="Grids" system="PARAMETERS_GRID_SYSTEM">
+        <INPUT type="grid_list" id="GRIDS" name="Grids" system="PARAMETERS_GRID_SYSTEM">
+          <FILE>C:\KUTATAS\PYTHON\GIS_museo\FreqRatPython\frp_alapadatok.sprj\SRTM31_EG_GF.sgrd</FILE>
+        </INPUT>
+        <INPUT type="grid_list" id="GRIDS" name="Grids" system="PARAMETERS_GRID_SYSTEM">
+          <FILE>C:\KUTATAS\PYTHON\GIS_museo\FreqRatPython\frp_alapadatok.sprj\SRTM31_EG_GF_Aspect.sgrd</FILE>
+        </INPUT>
+        <INPUT type="grid_list" id="GRIDS" name="Grids" system="PARAMETERS_GRID_SYSTEM">
+          <FILE>C:\KUTATAS\PYTHON\GIS_museo\FreqRatPython\frp_alapadatok.sprj\SRTM31_EG_GF_GenC.sgrd</FILE>
+        </INPUT>
+        <INPUT type="grid_list" id="GRIDS" name="Grids" system="PARAMETERS_GRID_SYSTEM">
+          <FILE>C:\KUTATAS\PYTHON\GIS_museo\FreqRatPython\frp_alapadatok.sprj\SRTM31_EG_GF_Slope.sgrd</FILE>
+        </INPUT>
+        <INPUT type="grid_list" id="GRIDS" name="Grids" system="PARAMETERS_GRID_SYSTEM"/>
+      </INPUT_LIST>
+      <INPUT type="grid" id="MASK" name="Mask" system="MASK_GRIDSYSTEM">
+        <TOOL library="grid_tools" id="15" name="Reclassify Grid Values">
+          <OPTION type="grid_system" id="PARAMETERS_GRID_SYSTEM" name="Grid System">
+            <CELLSIZE>31</CELLSIZE>
+            <XMIN>593309</XMIN>
+            <XMAX>626262</XMAX>
+            <YMIN>255688</YMIN>
+            <YMAX>270382</YMAX>
+          </OPTION>
+          <OPTION type="choice" id="METHOD" name="Method" index="0">single</OPTION>
+          <OPTION type="double" id="OLD" name="Old Value">0.000000</OPTION>
+          <OPTION type="double" id="NEW" name="New Value">0.000000</OPTION>
+          <OPTION type="choice" id="SOPERATOR" name="Operator" index="0">=</OPTION>
+          <OPTION type="boolean" id="NODATAOPT" name="No Data Values">true</OPTION>
+          <OPTION type="double" id="NODATA" name="New Value">-99999.000000</OPTION>
+          <OPTION type="boolean" id="OTHEROPT" name="Other Values">true</OPTION>
+          <OPTION type="double" id="OTHERS" name="New Value">1.000000</OPTION>
+          <OPTION type="choice" id="RESULT_TYPE" name="Data Storage Type" index="9">same as input grid</OPTION>
+          <OPTION type="choice" id="RESULT_NODATA_CHOICE" name="No Data Value" index="1">user defined No Data value</OPTION>
+          <OPTION type="double" id="RESULT_NODATA_VALUE" name="No Data Value">-99999.000000</OPTION>
+          <INPUT type="grid" id="INPUT" name="Grid" system="PARAMETERS_GRID_SYSTEM">
+            <TOOL library="grid_gridding" id="0" name="Shapes to Grid">
+              <OPTION type="table_field" id="FIELD" name="Attribute" index="13">k_szam_uj</OPTION>
+              <OPTION type="choice" id="OUTPUT" name="Output Values" index="2">attribute</OPTION>
+              <OPTION type="choice" id="MULTIPLE" name="Method for Multiple Values" index="1">last</OPTION>
+              <OPTION type="choice" id="POLY_TYPE" name="Polygon" index="1">cell</OPTION>
+              <OPTION type="choice" id="GRID_TYPE" name="Data Type" index="9">same as attribute</OPTION>
+              <OPTION type="choice" id="TARGET_DEFINITION" name="Target Grid System" index="1">grid or grid system</OPTION>
+              <OPTION type="grid_system" id="TARGET_SYSTEM" name="Grid System">
+                <CELLSIZE>31</CELLSIZE>
+                <XMIN>593309</XMIN>
+                <XMAX>626262</XMAX>
+                <YMIN>255688</YMIN>
+                <YMAX>270382</YMAX>
+              </OPTION>
+              <INPUT type="shapes" id="INPUT" name="Shapes">
+                <FILE>C:\kutatas\python_scripts\GIS_museo\FreqRatPython\frp_alapadatok.sprj\fdt_100_EG_14kat_Cleaned.shp</FILE>
+              </INPUT>
+              <OUTPUT type="grid" id="GRID" name="Grid">fdt_100_EG_14kat_Cleaned [k_szam_uj]</OUTPUT>
+            </TOOL>
+          </INPUT>
+          <OUTPUT type="grid" id="RESULT" name="Reclassified Grid">fdt_100_EG_14k_c (Reclassified)</OUTPUT>
+        </TOOL>
+      </INPUT>
+      <OUTPUT type="grid_list" id="GRIDS_MASKED" name="Masked Grids">SRTM31_EG_GF_Slope</OUTPUT>
+    </TOOL>
+  </HISTORY>
+  <PROJECTION>
+    <OGC_WKT>PROJCS["Hotine_Oblique_Mercator",GEOGCS["GCS",DATUM["Datum",SPHEROID["GRS67",6378160.0,298.2471674],TOWGS84[52.17,-71.82,-14.9,0,0,0,0]],PRIMEM["Greenwich",0],UNIT["degree",0.01745329251994328]],PROJECTION[Hotine_Oblique_Mercator],PARAMETER["latitude_of_origin",47.14439372222222 ],PARAMETER["central_meridian",19.04857177777778 ],PARAMETER["scale_factor",0.99993 ],PARAMETER["false_easting",650000 ],PARAMETER["false_northing",200000 ],UNIT["Meter",1]]</OGC_WKT>
+    <PROJ4>+proj=somerc +lat_0=47.14439372222222 +lon_0=19.04857177777778 +k_0=0.99993 +x_0=650000 +y_0=200000 +ellps=GRS67 +towgs84=52.17,-71.82,-14.9,0,0,0,0 +units=m +no_defs </PROJ4>
+    <EPSG>-1</EPSG>
+  </PROJECTION>
+  <FILE>E:\kutatas\UNKP_2019\adatok\fr-modeller-data\FreqRatPython\data\SRTM31_EG_GF_Slope_m.sgrd</FILE>
+  <DESCRIPTION></DESCRIPTION>
+</SAGA_METADATA>
