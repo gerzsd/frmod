@@ -11,7 +11,7 @@ if __name__ == "__main__":
                     path='./data/SRTM31_EG_GF_Slope_m.sdat',
                     bins=20,
                     categorical=False)
-    geology = VRaster(name='geology 14',
+    geology = VRaster(name='geology_14',
                       path='./data/fdt100_14k.sdat',
                       categorical=True)
     scarps = LandslideMask(name='scarps',
