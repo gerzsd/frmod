@@ -74,15 +74,33 @@ def get_freq_ratios(vr,
                               range=glob_lim, density=False)
         nls_hst = np.histogram(vr[mask == nls_marker], bins=binc,
                                range=glob_lim, density=False)
+    # Histogram density for the landslide part
     ls_hst_d = ls_hst[0] / ls_area
+    # Histogram density for the non-landslide part
     nls_hst_d = nls_hst[0] / nls_area
+    # Histogram bins
     hst_bins = ls_hst[1]
+    mn = hst_bins[:-1]
+    mx = hst_bins[1:]
+    # Frequency ratios
     fr = ls_hst_d / nls_hst_d
     if normalize:
         frequency_ratios = (fr - fr.min()) / (fr.max() - fr.min())
     else:
         frequency_ratios = fr
-    return frequency_ratios, hst_bins
+
+    # Create a pd.DataFrame for the bins, densities, and the frequency ratio
+    data = [mn, mx, ls_hst_d, nls_hst_d, frequency_ratios]
+    
+    # columns = ["Min", "Max", "LS_density", "NLS_density", "frequency_ratio"]
+    data = {'min': mn,
+            'max': mx,
+            'LS_density': ls_hst_d,
+            'NLS_density': nls_hst_d,
+            'frequency_ratio': fr}
+    fr_stat_df = pd.DataFrame(data=data)
+    print(fr_stat_df.describe)
+    return frequency_ratios, hst_bins, fr_stat_df
 
 
 def reclass_raster(vr, f_ratios, bin_edges, verbose=False):
@@ -417,13 +435,30 @@ class FRAnalysis():
         all_hst_bins = []
         # Run the analysis with the training areas of the different folds
         for msk in lsm.train_areas:
-            frq_ratios, hst_bins = get_freq_ratios(vr=vrr.grid,
-                                                   mask=msk,
-                                                   binc=vrr.bins,
-                                                   nodata=vrr.nodata,
-                                                   categorical=vrr.categorical,
-                                                   normalize=False
-                                                   )
+            # frq_ratios, hst_bins = get_freq_ratios(vr=vrr.grid,
+            #                                        mask=msk,
+            #                                        binc=vrr.bins,
+            #                                        nodata=vrr.nodata,
+            #                                        categorical=vrr.categorical,
+            #                                        normalize=False
+            #                                        )
+            fr_data = get_freq_ratios(vr=vrr.grid,
+                                      mask=msk,
+                                      binc=vrr.bins,
+                                      nodata=vrr.nodata,
+                                      categorical=vrr.categorical,
+                                      normalize=False
+                                      )
+            frq_ratios = fr_data[0]
+            hst_bins = fr_data[1]
+            fr_stat_df = fr_data[2]
+            """
+            TODO
+            Store the fr_stat_df somehow.
+            It is computed for one fold of one VRaster in this loop.
+            FRAnalysis objects should have an attribute for the frequency
+            ratios storing all the folds for all the variables.
+            """
             # Prepare the statistics DataFrame
             all_frq_ratios.append(frq_ratios)
             all_hst_bins.append(hst_bins)
