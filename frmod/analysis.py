@@ -152,6 +152,7 @@ def show_grid(grid, nodata, name='Grid', cmap='viridis'):
     plt.title(name)
     plt.imshow(masked_grid, cmap=cmap)
     plt.colorbar()
+    plt.show()
 
 
 class VRaster():
@@ -594,3 +595,15 @@ class FRAnalysis():
             show_grid(self.fresult, -99999, name='Estimated susceptibility')
         else:
             print("Use get_result() first!")
+
+    def plot_success_rates(self):
+        fig, ax = plt.subplots()
+        label = 1
+        for i in self.success_rates:
+            ax.plot(i, label=label)
+            label += 1
+        ax.set_xlim(left=0, right=99)
+        ax.set_ylim(bottom=0, top=1.0)
+        diag_line, = ax.plot(ax.get_xlim(), ax.get_ylim(), ls="--", c=".3")
+        ax.legend()
+        plt.show()
