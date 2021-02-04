@@ -1,4 +1,4 @@
-""" Tutorial script for frmod"""
+"""Tutorial script for frmod."""
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -9,7 +9,7 @@ from frmod.analysis import VRaster, LandslideMask, FRAnalysis
 if __name__ == "__main__":
     slope = VRaster(name='slope',
                     path='./data/SRTM31_EG_GF_Slope_m.sdat',
-                    bins=20,
+                    bins=30,
                     categorical=False)
     geology = VRaster(name='geology_14',
                       path='./data/fdt100_14k.sdat',

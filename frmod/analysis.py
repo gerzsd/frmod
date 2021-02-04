@@ -88,10 +88,8 @@ def get_freq_ratios(vr,
         frequency_ratios = (fr - fr.min()) / (fr.max() - fr.min())
     else:
         frequency_ratios = fr
-
     # Create a pd.DataFrame for the bins, densities, and the frequency ratio
     data = [mn, mx, ls_hst_d, nls_hst_d, frequency_ratios]
-    
     # columns = ["Min", "Max", "LS_density", "NLS_density", "frequency_ratio"]
     data = {'min': mn,
             'max': mx,
@@ -128,7 +126,6 @@ def reclass_raster(vr, f_ratios, bin_edges, verbose=False):
     for i in range(0, len(f_ratios)):
         # Reclassifying the raster by assigning the frequency ratio
         # values of each bin to the corresponding raster values.
-
         mn = bin_edges[:-1][i]
         mx = bin_edges[1:][i]
         vrange = mx - mn
@@ -430,18 +427,14 @@ class FRAnalysis():
             Shape: (self.var_count, lsm.fold_count, vrr.shape[0], vrr.shape[1])
 
         """
+        # Array for storing the reclassified VRaster.grids for the folds
         rc_folds = []
+        # Create arrays for the statistics
         all_frq_ratios = []
         all_hst_bins = []
+
         # Run the analysis with the training areas of the different folds
         for msk in lsm.train_areas:
-            # frq_ratios, hst_bins = get_freq_ratios(vr=vrr.grid,
-            #                                        mask=msk,
-            #                                        binc=vrr.bins,
-            #                                        nodata=vrr.nodata,
-            #                                        categorical=vrr.categorical,
-            #                                        normalize=False
-            #                                        )
             fr_data = get_freq_ratios(vr=vrr.grid,
                                       mask=msk,
                                       binc=vrr.bins,
@@ -451,6 +444,7 @@ class FRAnalysis():
                                       )
             frq_ratios = fr_data[0]
             hst_bins = fr_data[1]
+            # pd.DataFrame with the densities and the frequency ratios
             fr_stat_df = fr_data[2]
             """
             TODO
@@ -459,6 +453,7 @@ class FRAnalysis():
             FRAnalysis objects should have an attribute for the frequency
             ratios storing all the folds for all the variables.
             """
+
             # Prepare the statistics DataFrame
             all_frq_ratios.append(frq_ratios)
             all_hst_bins.append(hst_bins)
@@ -466,9 +461,10 @@ class FRAnalysis():
             reclassed = reclass_raster(vrr.grid, frq_ratios, hst_bins)
             # Append the reclassified VRaster.grid to rc_folds
             rc_folds.append(reclassed)
+
+        # Creating the pd.DataFrame for the statistics
         mn = all_hst_bins[0][:-1]
         mx = all_hst_bins[0][1:]
-        # Creating the pd.DataFrame for the statistics
         stat_df = pd.DataFrame({(vrr.name+'_min'): mn, (vrr.name+'_max'): mx})
         for i in range(0, lsm.fold_count):
             cname = "fold_"+str(i+1)
@@ -600,11 +596,11 @@ class FRAnalysis():
         None.
 
         """
+        output_path = folder+tag
         # Create the folder directory if it doesn't exist.
         if os.path.isdir(folder) is False:
             os.makedirs(folder)
 
-        output_path = folder+tag
         for k, v in self.stats.items():
             v.to_csv(output_path+"_{}.csv".format(str(k)))
 
@@ -629,6 +625,17 @@ class FRAnalysis():
             print("Use get_result() first!")
 
     def plot_success_rates(self):
+        """
+        Plot the success rate curves.
+
+        The success rate curve shows the cumulative distribution of
+        test landslide cells (pixels) in the susceptibility categories.
+
+        Returns
+        -------
+        None.
+
+        """
         fig, ax = plt.subplots()
         label = 1
         for i in self.success_rates:
