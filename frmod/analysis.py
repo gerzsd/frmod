@@ -97,7 +97,6 @@ def get_freq_ratios(vr,
             'NLS_density': nls_hst_d,
             'frequency_ratio': fr}
     fr_stat_df = pd.DataFrame(data=data)
-    print(fr_stat_df.describe)
     return frequency_ratios, hst_bins, fr_stat_df
 
 
@@ -379,35 +378,59 @@ class FRAnalysis():
         """
         # Input LandslideMask
         self.ls_mask = ls_mask
+
         # List of input VRasters
         self.var_list = var_list
+
         # Number of VRasters
         self.var_count = len(var_list)
+
+        # TODO Remove this and the related lines
         # Score: average estimated susceptibility of the validation cells.
         self.score = 0
-        # Percentile bins of the fresult
-        self.ranks = None
-        # Final result, the mean estimated susceptibility map over the folds.
-        self.fresult = None
+
+        # TODO Remove this and the related lines
         # Mean value of the validation cells of the fold
         self.fold_scores = []
+
+        # AUC, area under the success rate curve
+        # Sum of the success_rates of the folds
+        self.auc_folds = []
+        
+        self.auc_mean = None
+        self.auc_std = None
+
+        # Percentile bins of the fresult
+        self.ranks = None
+
+        # Final result, the mean estimated susceptibility map over the folds.
+        self.fresult = None
+
         # Susceptibility value bins for the percentiles
         self.valid_perc = []
+
         # The distributions of % ranks for the validation cells.
         self.v_dist = []
+
         # Bins for the above v_dist
         self.v_bins = []
+
         # Frequency ratio analysis results for each VRaster and fold.
         self.stats = {}
+
         # Frequency ratio analysis results for each VRaster and fold.
         # keyword: VRaster.name
         # value: list of pd.DataFrames, 1 DF / fold
         self.fr_stats_full = {}
+
         # List of success rates for the folds.
         self.success_rates = None
         # pandas DataFrame of the success rates for the folds.
+
         self.src_df = None
-        # Reclassified grids for each fold and variable
+        # Reclassified grids for each variable and fold
+        # Shape: [var_count, ls_mask.fold_count, rows, columns]
+
         self.rc_folds = [self.run_analysis(v, self.ls_mask)
                          for v in self.var_list]
 
@@ -459,7 +482,7 @@ class FRAnalysis():
             reclassed = reclass_raster(vrr.grid, frq_ratios, hst_bins)
             # Append the reclassified VRaster.grid to rc_folds
             rc_folds.append(reclassed)
-            
+
         # Adding all_folds_statistics DF to the fr_stats_full dict
         self.fr_stats_full[vrr.name] = all_folds_statistics
 
@@ -560,6 +583,9 @@ class FRAnalysis():
             src_df.insert(i+1, cname, success_rates[i])
         self.src_df = src_df
         return success_rates
+
+    def get_auc(self):
+        return
 
     def save_src(self, folder="./output/", fname="src.csv"):
         """
