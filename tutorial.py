@@ -7,9 +7,13 @@ from frmod.analysis import VRaster, LandslideMask, FRAnalysis
 
 
 if __name__ == "__main__":
+    elevation = VRaster(name='elevation',
+                        path='./data/SRTM31_EG_GF_m.sdat',
+                        bins=15,
+                        categorical=False)
     slope = VRaster(name='slope',
                     path='./data/SRTM31_EG_GF_Slope_m.sdat',
-                    bins=30,
+                    bins=15,
                     categorical=False)
     geology = VRaster(name='geology_14',
                       path='./data/fdt100_14k.sdat',
@@ -17,10 +21,11 @@ if __name__ == "__main__":
     scarps = LandslideMask(name='scarps',
                            path='./data/scarps.sdat',
                            ls_marker=1,
-                           fold_count=3)
+                           fold_count=5)
     fra = FRAnalysis(ls_mask=scarps,
                      var_list=[slope,
-                               geology]
+                               geology,
+                               elevation]
                      )
     result_percentile_bins = fra.get_result()
 
@@ -34,7 +39,7 @@ if __name__ == "__main__":
 
     # Plotting the success rate curve
     fra.plot_success_rates()
-    
+
     # Preparing the dataframes for displaying the statistics
     slope_df1 = fra.fr_stats_full["slope"][0]
     slope_df2 = fra.fr_stats_full["slope"][1]
@@ -48,12 +53,4 @@ if __name__ == "__main__":
     plt.tight_layout()
     plt.show()
 
-    # Scoring example
-    all_scores = []
-    for i in range(1, 1 + fra.ls_mask.fold_count):
-        score = fra.src_df[fra.src_df.columns[i]].sum()
-        all_scores.append(score)
-        print(score)
-    mean_score = np.mean(all_scores)
-    std_score = np.std(all_scores)
-    print("Mean score: {}; Std: {}".format(mean_score, std_score))
+    auc_folds = fra.get_auc()

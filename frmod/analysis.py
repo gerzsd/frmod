@@ -378,26 +378,17 @@ class FRAnalysis():
         """
         # Input LandslideMask
         self.ls_mask = ls_mask
-
         # List of input VRasters
         self.var_list = var_list
-
         # Number of VRasters
         self.var_count = len(var_list)
-
-        # TODO Remove this and the related lines
-        # Score: average estimated susceptibility of the validation cells.
-        self.score = 0
-
-        # TODO Remove this and the related lines
-        # Mean value of the validation cells of the fold
-        self.fold_scores = []
 
         # AUC, area under the success rate curve
         # Sum of the success_rates of the folds
         self.auc_folds = []
-        
+        # Mean AUC
         self.auc_mean = None
+        # Standard deviations of the AUCs
         self.auc_std = None
 
         # Percentile bins of the fresult
@@ -411,7 +402,6 @@ class FRAnalysis():
 
         # The distributions of % ranks for the validation cells.
         self.v_dist = []
-
         # Bins for the above v_dist
         self.v_bins = []
 
@@ -426,11 +416,10 @@ class FRAnalysis():
         # List of success rates for the folds.
         self.success_rates = None
         # pandas DataFrame of the success rates for the folds.
-
         self.src_df = None
+
         # Reclassified grids for each variable and fold
         # Shape: [var_count, ls_mask.fold_count, rows, columns]
-
         self.rc_folds = [self.run_analysis(v, self.ls_mask)
                          for v in self.var_list]
 
@@ -536,13 +525,7 @@ class FRAnalysis():
             # Append the probability density function to vdist
             self.v_dist.append(v_dist)
             self.v_bins.append(v_bins)
-            # Mean estimated susceptibility of the validation cells of fold #i
-            vmean = np.mean(v_to_score)
-            self.fold_scores.append(vmean)
             result.append(fold_result)
-            self.score += vmean
-            vstd = np.std(v_to_score)
-            print(vmean, vstd, sep=";")
 
         # fresult: cell by cell average of the result array
         fresult = sum(result) / self.ls_mask.fold_count
@@ -555,8 +538,6 @@ class FRAnalysis():
         fresult[fresult < 0] = -99999
 
         self.fresult = fresult
-        self.score /= self.ls_mask.fold_count
-        print("Score: ", self.score)
         percentiles = [i*0.01 for i in range(0, 101)]
         self.ranks = np.quantile(fresult[fresult > 0], percentiles)
         return self.ranks
@@ -585,7 +566,14 @@ class FRAnalysis():
         return success_rates
 
     def get_auc(self):
-        return
+        for i in self.success_rates:
+            auc_of_fold = np.sum(i)
+            self.auc_folds.append(auc_of_fold)
+            print("Auc: {}".format(auc_of_fold))
+        self.auc_mean = np.mean(self.auc_folds)
+        self.auc_std = np.std(self.auc_folds)
+        print("Mean score: {}; Std: {}".format(self.auc_mean, self.auc_std))
+        return self.auc_folds
 
     def save_src(self, folder="./output/", fname="src.csv"):
         """
