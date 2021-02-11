@@ -54,3 +54,4 @@ if __name__ == "__main__":
     plt.show()
 
     auc_folds = fra.get_auc()
+    fra.get_percentile_grid(show=True)

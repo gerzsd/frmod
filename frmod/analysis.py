@@ -11,7 +11,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
-import utils as utils
+import utils
 
 
 def get_freq_ratios(vr,
@@ -100,6 +100,8 @@ def get_freq_ratios(vr,
     return frequency_ratios, hst_bins, fr_stat_df
 
 
+# TODO: a name change is due to reclass_array
+# TODO Use more generic variable names. This can reclass any array.
 def reclass_raster(vr, f_ratios, bin_edges, verbose=False):
     """
     Create an array with the frequency ratios.
@@ -396,6 +398,8 @@ class FRAnalysis():
 
         # Final result, the mean estimated susceptibility map over the folds.
         self.fresult = None
+        # Final result in the percentile form
+        self.percentile_grid = None
 
         # Susceptibility value bins for the percentiles
         self.valid_perc = []
@@ -566,6 +570,15 @@ class FRAnalysis():
         return success_rates
 
     def get_auc(self):
+        """
+        Get AUC, area under the success rate curve.
+
+        Returns
+        -------
+        list
+            AUC values for the folds.
+
+        """
         for i in self.success_rates:
             auc_of_fold = np.sum(i)
             self.auc_folds.append(auc_of_fold)
@@ -574,6 +587,14 @@ class FRAnalysis():
         self.auc_std = np.std(self.auc_folds)
         print("Mean score: {}; Std: {}".format(self.auc_mean, self.auc_std))
         return self.auc_folds
+
+    def get_percentile_grid(self, show=False):
+        percent = [i for i in range(1, 101)]
+        percentile_grid = reclass_raster(self.fresult, percent, self.ranks)
+        self.percentile_grid = percentile_grid
+        if show:
+            show_grid(grid=percentile_grid, nodata=-99999,
+                      name="Susceptibility (percentiles)")
 
     def save_src(self, folder="./output/", fname="src.csv"):
         """
