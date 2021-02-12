@@ -1,0 +1,3 @@
+<PAMDataset>
+<SRS>PROJCS["Hotine_Oblique_Mercator",GEOGCS["GCS",DATUM["Datum",SPHEROID["GRS67",6378160.0,298.2471674],TOWGS84[52.17,-71.82,-14.9,0,0,0,0]],PRIMEM["Greenwich",0],UNIT["degree",0.01745329251994328]],PROJECTION[Hotine_Oblique_Mercator],PARAMETER["latitude_of_origin",47.14439372222222 ],PARAMETER["central_meridian",19.04857177777778 ],PARAMETER["scale_factor",0.99993 ],PARAMETER["false_easting",650000 ],PARAMETER["false_northing",200000 ],UNIT["Meter",1]]</SRS>
+</PAMDataset>

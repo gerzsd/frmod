@@ -74,17 +74,34 @@ def get_freq_ratios(vr,
                               range=glob_lim, density=False)
         nls_hst = np.histogram(vr[mask == nls_marker], bins=binc,
                                range=glob_lim, density=False)
+    # Histogram density for the landslide part
     ls_hst_d = ls_hst[0] / ls_area
+    # Histogram density for the non-landslide part
     nls_hst_d = nls_hst[0] / nls_area
+    # Histogram bins
     hst_bins = ls_hst[1]
+    mn = hst_bins[:-1]
+    mx = hst_bins[1:]
+    # Frequency ratios
     fr = ls_hst_d / nls_hst_d
     if normalize:
         frequency_ratios = (fr - fr.min()) / (fr.max() - fr.min())
     else:
         frequency_ratios = fr
-    return frequency_ratios, hst_bins
+    # Create a pd.DataFrame for the bins, densities, and the frequency ratio
+    data = [mn, mx, ls_hst_d, nls_hst_d, frequency_ratios]
+    # columns = ["Min", "Max", "LS_density", "NLS_density", "frequency_ratio"]
+    data = {'min': mn,
+            'max': mx,
+            'LS_density': ls_hst_d,
+            'NLS_density': nls_hst_d,
+            'frequency_ratio': fr}
+    fr_stat_df = pd.DataFrame(data=data)
+    return frequency_ratios, hst_bins, fr_stat_df
 
 
+# TODO: a name change is due to reclass_array
+# TODO Use more generic variable names. This can reclass any array.
 def reclass_raster(vr, f_ratios, bin_edges, verbose=False):
     """
     Create an array with the frequency ratios.
@@ -110,7 +127,6 @@ def reclass_raster(vr, f_ratios, bin_edges, verbose=False):
     for i in range(0, len(f_ratios)):
         # Reclassifying the raster by assigning the frequency ratio
         # values of each bin to the corresponding raster values.
-
         mn = bin_edges[:-1][i]
         mx = bin_edges[1:][i]
         vrange = mx - mn
@@ -325,7 +341,6 @@ class LandslideMask():
         train_area[valid_position] = self.nls_marker
         return train_area, valid_position
 
-
     def show(self, cmap='Accent'):
         """
         Plot the LandslideMask.grid.
@@ -342,6 +357,7 @@ class LandslideMask():
 
         """
         show_grid(self.grid, self.nodata, name=self.name, cmap=cmap)
+
 
 class FRAnalysis():
     """Frequency ratio analysis of a LandslideMask and a list of VRasters."""
@@ -368,27 +384,46 @@ class FRAnalysis():
         self.var_list = var_list
         # Number of VRasters
         self.var_count = len(var_list)
-        # Score: average estimated susceptibility of the validation cells.
-        self.score = 0
+
+        # AUC, area under the success rate curve
+        # Sum of the success_rates of the folds
+        self.auc_folds = []
+        # Mean AUC
+        self.auc_mean = None
+        # Standard deviations of the AUCs
+        self.auc_std = None
+
         # Percentile bins of the fresult
         self.ranks = None
+
         # Final result, the mean estimated susceptibility map over the folds.
         self.fresult = None
-        # Mean value of the validation cells of the fold
-        self.fold_scores = []
-        #
+        # Final result in the percentile form
+        self.percentile_grid = None
+
+        # Susceptibility value bins for the percentiles
         self.valid_perc = []
+
         # The distributions of % ranks for the validation cells.
         self.v_dist = []
         # Bins for the above v_dist
         self.v_bins = []
+
         # Frequency ratio analysis results for each VRaster and fold.
         self.stats = {}
+
+        # Frequency ratio analysis results for each VRaster and fold.
+        # keyword: VRaster.name
+        # value: list of pd.DataFrames, 1 DF / fold
+        self.fr_stats_full = {}
+
         # List of success rates for the folds.
         self.success_rates = None
         # pandas DataFrame of the success rates for the folds.
         self.src_df = None
-        # Reclassified grids for each fold and variable
+
+        # Reclassified grids for each variable and fold
+        # Shape: [var_count, ls_mask.fold_count, rows, columns]
         self.rc_folds = [self.run_analysis(v, self.ls_mask)
                          for v in self.var_list]
 
@@ -412,18 +447,27 @@ class FRAnalysis():
             Shape: (self.var_count, lsm.fold_count, vrr.shape[0], vrr.shape[1])
 
         """
+        # Array for storing the reclassified VRaster.grids for the folds
         rc_folds = []
+        # Create arrays for the statistics
         all_frq_ratios = []
         all_hst_bins = []
+        all_folds_statistics = []
+
         # Run the analysis with the training areas of the different folds
+        # Iterating over the train_areas of the folds
         for msk in lsm.train_areas:
-            frq_ratios, hst_bins = get_freq_ratios(vr=vrr.grid,
-                                                   mask=msk,
-                                                   binc=vrr.bins,
-                                                   nodata=vrr.nodata,
-                                                   categorical=vrr.categorical,
-                                                   normalize=False
-                                                   )
+            fr_data = get_freq_ratios(vr=vrr.grid,
+                                      mask=msk,
+                                      binc=vrr.bins,
+                                      nodata=vrr.nodata,
+                                      categorical=vrr.categorical,
+                                      normalize=False
+                                      )
+            frq_ratios = fr_data[0]
+            hst_bins = fr_data[1]
+            # pd.DataFrame with the densities and the frequency ratios
+            all_folds_statistics.append(fr_data[2])
             # Prepare the statistics DataFrame
             all_frq_ratios.append(frq_ratios)
             all_hst_bins.append(hst_bins)
@@ -431,9 +475,13 @@ class FRAnalysis():
             reclassed = reclass_raster(vrr.grid, frq_ratios, hst_bins)
             # Append the reclassified VRaster.grid to rc_folds
             rc_folds.append(reclassed)
+
+        # Adding all_folds_statistics DF to the fr_stats_full dict
+        self.fr_stats_full[vrr.name] = all_folds_statistics
+
+        # Creating the pd.DataFrame for the frequency ratio statistics
         mn = all_hst_bins[0][:-1]
         mx = all_hst_bins[0][1:]
-        # Creating the pd.DataFrame for the statistics
         stat_df = pd.DataFrame({(vrr.name+'_min'): mn, (vrr.name+'_max'): mx})
         for i in range(0, lsm.fold_count):
             cname = "fold_"+str(i+1)
@@ -444,7 +492,7 @@ class FRAnalysis():
 
     def get_result(self):
         """
-        Get the susceptibility estimation, ranks, and model scoring.
+        Get the susceptibility estimation and ranks.
 
         Returns
         -------
@@ -469,23 +517,19 @@ class FRAnalysis():
             valid_perc = np.quantile(fold_result[fold_result >= 0],
                                      pb,
                                      interpolation='nearest')
+
             self.valid_perc.append(valid_perc)
             v_to_score = fold_result[valid_positions[i]]
             v_dist, v_bins = np.histogram(v_to_score,
                                           valid_perc,
                                           density=False)
+
             v_dist = np.array(v_dist)
             v_dist = v_dist / sum(v_dist)
             # Append the probability density function to vdist
             self.v_dist.append(v_dist)
             self.v_bins.append(v_bins)
-            # Mean estimated susceptibility of the validation cells of fold #i
-            vmean = np.mean(v_to_score)
-            self.fold_scores.append(vmean)
             result.append(fold_result)
-            self.score += vmean
-            vstd = np.std(v_to_score)
-            print(vmean, vstd, sep=";")
 
         # fresult: cell by cell average of the result array
         fresult = sum(result) / self.ls_mask.fold_count
@@ -498,8 +542,6 @@ class FRAnalysis():
         fresult[fresult < 0] = -99999
 
         self.fresult = fresult
-        self.score /= self.ls_mask.fold_count
-        print("Score: ", self.score)
         percentiles = [i*0.01 for i in range(0, 101)]
         self.ranks = np.quantile(fresult[fresult > 0], percentiles)
         return self.ranks
@@ -526,6 +568,33 @@ class FRAnalysis():
             src_df.insert(i+1, cname, success_rates[i])
         self.src_df = src_df
         return success_rates
+
+    def get_auc(self):
+        """
+        Get AUC, area under the success rate curve.
+
+        Returns
+        -------
+        list
+            AUC values for the folds.
+
+        """
+        for i in self.success_rates:
+            auc_of_fold = np.sum(i)
+            self.auc_folds.append(auc_of_fold)
+            print("Auc: {}".format(auc_of_fold))
+        self.auc_mean = np.mean(self.auc_folds)
+        self.auc_std = np.std(self.auc_folds)
+        print("Mean score: {}; Std: {}".format(self.auc_mean, self.auc_std))
+        return self.auc_folds
+
+    def get_percentile_grid(self, show=False):
+        percent = [i for i in range(1, 101)]
+        percentile_grid = reclass_raster(self.fresult, percent, self.ranks)
+        self.percentile_grid = percentile_grid
+        if show:
+            show_grid(grid=percentile_grid, nodata=-99999,
+                      name="Susceptibility (percentiles)")
 
     def save_src(self, folder="./output/", fname="src.csv"):
         """
@@ -565,11 +634,11 @@ class FRAnalysis():
         None.
 
         """
+        output_path = folder+tag
         # Create the folder directory if it doesn't exist.
         if os.path.isdir(folder) is False:
             os.makedirs(folder)
 
-        output_path = folder+tag
         for k, v in self.stats.items():
             v.to_csv(output_path+"_{}.csv".format(str(k)))
 
@@ -594,6 +663,17 @@ class FRAnalysis():
             print("Use get_result() first!")
 
     def plot_success_rates(self):
+        """
+        Plot the success rate curves.
+
+        The success rate curve shows the cumulative distribution of
+        test landslide cells (pixels) in the susceptibility categories.
+
+        Returns
+        -------
+        None.
+
+        """
         fig, ax = plt.subplots()
         label = 1
         for i in self.success_rates:
@@ -603,4 +683,39 @@ class FRAnalysis():
         ax.set_ylim(bottom=0, top=1.0)
         diag_line, = ax.plot(ax.get_xlim(), ax.get_ylim(), ls="--", c=".3")
         ax.legend()
+        plt.show()
+
+    def plot_var_fold_fr(self, name, fold):
+        """
+        Plot the densities and the frequency ratio for a fold of one variable.
+        The function handles a pd.DataFrame from the fr_stats_full dict.
+        The df DataFrame is selected in the following way:
+        df = self.fr_stats_full[name][fold]
+
+        Parameters
+        ----------
+        name : str
+            A key in fr_stats_full.
+        fold : int
+            Index of the fold in the self.fr_stats_full[name] list.
+
+        Returns
+        -------
+        None.
+
+        """
+        df = self.fr_stats_full[name][fold]
+        print(df.describe())
+        fig, (ax1, ax2) = plt.subplots(2, 1)
+        ax1.set_xlabel("Distribution of slope values in the LS and NLS areas")
+        ax2.set_xlabel("{} - fold: {}".format(name,fold))
+        line_LS, = ax1.plot(df["min"], df["LS_density"])
+        line_NLS, = ax1.plot(df["min"], df["NLS_density"])
+        line_fr = ax2.plot(df["min"], df["frequency_ratio"])
+        ax1.set_ylim(bottom=0)
+        ax2.set_ylim(bottom=0)
+        ax1.set_xlim(left=df["min"][0])
+        ax2.set_xlim(left=df["min"][0])
+        ax2.set_ylabel("Frequency ratio")
+        plt.tight_layout()
         plt.show()
