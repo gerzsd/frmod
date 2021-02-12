@@ -1,3 +1,5 @@
+https://mybinder.org/v2/gh/gerzsd/frmod/HEAD
+
 # Frequency ratio modeller
 Landslide susceptibility analysis of raster grids using a frequency ratio model style approach (Chung, 2006).
 
