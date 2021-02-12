@@ -43,5 +43,5 @@ if __name__ == "__main__":
     auc_folds = fra.get_auc()
     fra.get_percentile_grid(show=True)
 
-    for i in range(0, fra.ls_mask.fold_count):
-        fra.plot_var_fold_fr("slope", i)
+    # for i in range(0, fra.ls_mask.fold_count):
+    #     fra.plot_var_fold_fr("slope", i)

@@ -492,7 +492,7 @@ class FRAnalysis():
 
     def get_result(self):
         """
-        Get the susceptibility estimation, ranks, and model scoring.
+        Get the susceptibility estimation and ranks.
 
         Returns
         -------
