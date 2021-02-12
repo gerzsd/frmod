@@ -11,7 +11,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 
-import utils
+import frmod.utils as utils
 
 
 def get_freq_ratios(vr,
@@ -683,4 +683,39 @@ class FRAnalysis():
         ax.set_ylim(bottom=0, top=1.0)
         diag_line, = ax.plot(ax.get_xlim(), ax.get_ylim(), ls="--", c=".3")
         ax.legend()
+        plt.show()
+
+    def plot_var_fold_fr(self, name, fold):
+        """
+        Plot the densities and the frequency ratio for a fold of one variable.
+        The function handles a pd.DataFrame from the fr_stats_full dict.
+        The df DataFrame is selected in the following way:
+        df = self.fr_stats_full[name][fold]
+
+        Parameters
+        ----------
+        name : str
+            A key in fr_stats_full.
+        fold : int
+            Index of the fold in the self.fr_stats_full[name] list.
+
+        Returns
+        -------
+        None.
+
+        """
+        df = self.fr_stats_full[name][fold]
+        print(df.describe())
+        fig, (ax1, ax2) = plt.subplots(2, 1)
+        ax1.set_xlabel("Distribution of slope values in the LS and NLS areas")
+        ax2.set_xlabel("{} - fold: {}".format(name,fold))
+        line_LS, = ax1.plot(df["min"], df["LS_density"])
+        line_NLS, = ax1.plot(df["min"], df["NLS_density"])
+        line_fr = ax2.plot(df["min"], df["frequency_ratio"])
+        ax1.set_ylim(bottom=0)
+        ax2.set_ylim(bottom=0)
+        ax1.set_xlim(left=df["min"][0])
+        ax2.set_xlim(left=df["min"][0])
+        ax2.set_ylabel("Frequency ratio")
+        plt.tight_layout()
         plt.show()
