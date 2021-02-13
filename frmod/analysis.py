@@ -688,6 +688,7 @@ class FRAnalysis():
     def plot_var_fold_fr(self, name, fold):
         """
         Plot the densities and the frequency ratio for a fold of one variable.
+
         The function handles a pd.DataFrame from the fr_stats_full dict.
         The df DataFrame is selected in the following way:
         df = self.fr_stats_full[name][fold]
@@ -705,7 +706,6 @@ class FRAnalysis():
 
         """
         df = self.fr_stats_full[name][fold]
-        print(df.describe())
         fig, (ax1, ax2) = plt.subplots(2, 1)
         ax1.set_xlabel("Distribution of slope values in the LS and NLS areas")
         ax2.set_xlabel("{} - fold: {}".format(name,fold))
