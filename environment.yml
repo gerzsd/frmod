@@ -1,0 +1,12 @@
+name: frmod
+channels:
+  - conda-forge
+dependencies:
+  - python
+  - numpy
+  - pip
+  - gdal
+  - osr
+  - pip:
+    - pandas
+    - matplotlib
