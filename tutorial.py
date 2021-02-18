@@ -7,41 +7,40 @@ from frmod.analysis import VRaster, LandslideMask, FRAnalysis
 
 
 if __name__ == "__main__":
-    elevation = VRaster(name='elevation',
+    ELEVATION = VRaster(name='elevation',
                         path='./data/SRTM31_EG_GF_m.sdat',
                         bins=15,
                         categorical=False)
-    slope = VRaster(name='slope',
+    SLOPE = VRaster(name='slope',
                     path='./data/SRTM31_EG_GF_Slope_m.sdat',
                     bins=15,
                     categorical=False)
-    geology = VRaster(name='geology_14',
+    GEOLOGY = VRaster(name='geology_14',
                       path='./data/fdt100_14k.sdat',
                       categorical=True)
-    scarps = LandslideMask(name='scarps',
+    SCARPS = LandslideMask(name='scarps',
                            path='./data/scarps.sdat',
                            ls_marker=1,
                            fold_count=5)
-    fra = FRAnalysis(ls_mask=scarps,
-                     var_list=[slope,
-                               geology,
-                               elevation]
+    FRA = FRAnalysis(ls_mask=SCARPS,
+                     var_list=[SLOPE,
+                               GEOLOGY,
+                               ELEVATION]
                      )
-    result_percentile_bins = fra.get_result()
 
-    # Displaying the results
-    plt.figure()
-    plt.imshow(fra.fresult, vmin=fra.ranks[0], cmap='viridis')
-    plt.colorbar()
+    FRA.get_result()
 
-    # Computing the success rates
-    success_rates = fra.get_src()
+    # Display the results
+    FRA.show_results(cmap='coolwarm')
 
-    # Plotting the success rate curve
-    fra.plot_success_rates()
+    # Compute the success rates
+    success_rates = FRA.get_src()
 
-    auc_folds = fra.get_auc()
-    fra.get_percentile_grid(show=True)
+    # Plot the success rate curve
+    FRA.plot_success_rates()
 
-    # for i in range(0, fra.ls_mask.fold_count):
-    #     fra.plot_var_fold_fr("slope", i)
+    auc_folds = FRA.get_auc()
+    FRA.get_percentile_grid(show=True, cmap='cividis')
+
+    # Plot the frequency ratio statistics for the 1st slope fold
+    slope_1_fig = FRA.plot_var_fold_fr("slope", 0)

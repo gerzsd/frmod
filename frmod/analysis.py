@@ -139,9 +139,13 @@ def reclass_raster(vr, f_ratios, bin_edges, verbose=False):
     return reclassed
 
 
-def show_grid(grid, nodata, name='Grid', cmap='viridis'):
+def show_grid(grid, nodata, name='Grid', **kwargs):
     """
     Plot a grid, nodata values are masked.
+
+    Plot a grid (2D array). Values equal to nodata will be masked.
+    **kwargs are keywords passed to matplotplit.pyplot.imshow that
+    is used for plotting the masked grid. Eg. color maps (cmap).
 
     Parameters
     ----------
@@ -151,9 +155,6 @@ def show_grid(grid, nodata, name='Grid', cmap='viridis'):
         Nodata value of the grid. Nodata values will be masked.
     name : str, optional
         The title of the plot. The default is 'Grid'.
-    cmap : str, optional
-        Must be the name of a built-in Matplotlib colormap.
-        The default is 'viridis'.
 
     Returns
     -------
@@ -163,7 +164,7 @@ def show_grid(grid, nodata, name='Grid', cmap='viridis'):
     masked_grid = np.ma.masked_where((grid == nodata), grid)
     plt.figure()
     plt.title(name)
-    plt.imshow(masked_grid, cmap=cmap)
+    plt.imshow(masked_grid, **kwargs)
     plt.colorbar()
     plt.show()
 
@@ -204,22 +205,21 @@ class VRaster():
         self.max = max(self.grid[self.grid != self.nodata])
         self.limits = (self.min, self.max)
 
-    def show(self, cmap='viridis'):
+    def show(self, **kwargs):
         """
         Plot the VRaster.grid.
 
         Parameters
         ----------
-        cmap : str, optional
-            Must be the name of a built-in Matplotlib colormap.
-            The default is 'viridis'.
+        **kwargs :
+            Keywords passed to show_grid.
 
         Returns
         -------
         None.
 
         """
-        show_grid(self.grid, self.nodata, name=self.name, cmap=cmap)
+        show_grid(self.grid, self.nodata, name=self.name, **kwargs)
 
     def show_info(self):
         """
@@ -360,11 +360,32 @@ class LandslideMask():
 
 
 class FRAnalysis():
-    """Frequency ratio analysis of a LandslideMask and a list of VRasters."""
+    """Frequency ratio analysis of a LandslideMask and a list of VRasters.
+
+    The steps of the analysis:
+
+    1. run_analysis() is run upon instantiation for each fold of the
+        ls_mask and each VRaster. This yields the frequency ratio statistics
+        and the reclassified grids.
+    2. get_result() Compute the susceptibility grid and other related data.
+        
+    3. get_src() Compute the success rate curves.
+        The success rate curve is the cumulative frequency distribution
+        of the landslide cells in the susceptibility categories.
+        Computed for each fold.
+    4. get_auc() Compute the area under the success rate curves for scoring.
+        Computed for each fold, then averaged for an overall score.
+        Smaller values are better.
+    """
 
     def __init__(self, ls_mask, var_list):
         """
         Create the FRAnalysis object.
+
+        Create the FRAnalysis object and its instanced variables.
+        The last step of the instantiation is creating the rc_folds list.
+        The rc_folds holds the reclassified VRaster.grid-s for the folds 
+        of the ls_mask for each VRaster in the var_list.
 
         Parameters
         ----------
@@ -424,8 +445,8 @@ class FRAnalysis():
 
         # Reclassified grids for each variable and fold
         # Shape: [var_count, ls_mask.fold_count, rows, columns]
-        self.rc_folds = [self.run_analysis(v, self.ls_mask)
-                         for v in self.var_list]
+        self.rc_folds = [self.run_analysis(vraster, self.ls_mask)
+                         for vraster in self.var_list]
 
     def run_analysis(self, vrr, lsm):
         """
@@ -504,7 +525,7 @@ class FRAnalysis():
         valid_positions = self.ls_mask.valid_positions
         result = []
         # percentile bins
-        pb = [x * 0.01 for x in range(0, 101)]
+        percentile_bins = [x * 0.01 for x in range(0, 101)]
         # Iterate over the folds of the ls_mask.
         for i in range(0, self.ls_mask.fold_count):
             fold_result = np.zeros(rc_folds[0][0].shape)
@@ -515,7 +536,7 @@ class FRAnalysis():
 
             # Scoring
             valid_perc = np.quantile(fold_result[fold_result >= 0],
-                                     pb,
+                                     percentile_bins,
                                      interpolation='nearest')
 
             self.valid_perc.append(valid_perc)
@@ -588,13 +609,31 @@ class FRAnalysis():
         print("Mean score: {}; Std: {}".format(self.auc_mean, self.auc_std))
         return self.auc_folds
 
-    def get_percentile_grid(self, show=False):
+    def get_percentile_grid(self, show=False, **kwargs):
+        """
+        Reclass the fresult to get its percentile form.
+
+        Parameters
+        ----------
+        show : bool, optional
+            Set True to plot the percentile_grid after computing it.
+            The default is False.
+        **kwargs :
+            Keywords passed to show_grid.
+
+        Returns
+        -------
+        None.
+
+        """
         percent = [i for i in range(1, 101)]
         percentile_grid = reclass_raster(self.fresult, percent, self.ranks)
         self.percentile_grid = percentile_grid
         if show:
-            show_grid(grid=percentile_grid, nodata=-99999,
-                      name="Susceptibility (percentiles)")
+            show_grid(grid=percentile_grid,
+                      nodata=-99999,
+                      name="Susceptibility (percentiles)",
+                      **kwargs)
 
     def save_src(self, folder="./output/", fname="src.csv"):
         """
@@ -642,15 +681,12 @@ class FRAnalysis():
         for k, v in self.stats.items():
             v.to_csv(output_path+"_{}.csv".format(str(k)))
 
-    def show_results(self, cmap='viridis'):
+    def show_results(self, **kwargs):
         """
-        Plot fresult.
+        Plot fresult with show_grid.
 
-        Parameters
-        ----------
-        cmap : str, optional
-            Must be the name of a built-in Matplotlib colormap.
-            The default is 'viridis'.
+        Plot fresult, the raw estimated landslide susceptibility.
+        **kwargs can be keywords passed to matplotlib.pyplot.imshow
 
         Returns
         -------
@@ -658,7 +694,10 @@ class FRAnalysis():
 
         """
         if self.fresult.any(None):
-            show_grid(self.fresult, -99999, name='Estimated susceptibility')
+            show_grid(grid=self.fresult,
+                      nodata=-99999,
+                      name='Estimated susceptibility',
+                      **kwargs)
         else:
             print("Use get_result() first!")
 
@@ -671,7 +710,10 @@ class FRAnalysis():
 
         Returns
         -------
-        None.
+        fig : figure.Figure
+            A figure for the success rate curves.
+        ax : matplotlib.axes.__subplots.AxesSubplot
+           The axes of the figure.
 
         """
         fig, ax = plt.subplots()
@@ -684,6 +726,7 @@ class FRAnalysis():
         diag_line, = ax.plot(ax.get_xlim(), ax.get_ylim(), ls="--", c=".3")
         ax.legend()
         plt.show()
+        return fig, ax
 
     def plot_var_fold_fr(self, name, fold):
         """
@@ -702,13 +745,26 @@ class FRAnalysis():
 
         Returns
         -------
-        None.
+        fig : figure.Figure
+            A figure with two subplots on top of each other.
+        ax1 : matplotlib.axes.__subplots.AxesSubplot
+            1st axes of the figure. Located in the top part.
+        ax2 : matplotlib.axes.__subplots.AxesSubplot
+            2nd axes of the figure. Located in the bottom part.
+        line_LS : matplotlib.lines.Line2D
+            The "landslide" line of the 1st axes.
+        line_NLS : matplotlib.lines.Line2D
+            The "non-landslide" line of the 1st axes.
+        line_fr : matplotlib.lines.Line2D
+            The frequency ratio curve on the 2nd axes.
+            "landslide" line / "non-landslide" line
 
         """
         df = self.fr_stats_full[name][fold]
         fig, (ax1, ax2) = plt.subplots(2, 1)
-        ax1.set_xlabel("Distribution of slope values in the LS and NLS areas")
-        ax2.set_xlabel("{} - fold: {}".format(name,fold))
+        ax1.set_xlabel("Distribution of {} values in the LS and NLS areas".
+                       format(name))
+        ax2.set_xlabel("{} - fold: {}".format(name, fold))
         line_LS, = ax1.plot(df["min"], df["LS_density"])
         line_NLS, = ax1.plot(df["min"], df["NLS_density"])
         line_fr = ax2.plot(df["min"], df["frequency_ratio"])
@@ -719,3 +775,5 @@ class FRAnalysis():
         ax2.set_ylabel("Frequency ratio")
         plt.tight_layout()
         plt.show()
+        # Return the parts of the figure
+        return fig, ax1, ax2, line_LS, line_NLS, line_fr

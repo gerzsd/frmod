@@ -35,8 +35,8 @@ Input and output utilities for handling raster files.
 &#34;&#34;&#34;
 
 import os
-import gdal
-import osr
+import osgeo.gdal as gdal
+import osgeo.osr as osr
 
 
 def raster2array(rasterfn):
