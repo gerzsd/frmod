@@ -369,7 +369,6 @@ class FRAnalysis():
         ls_mask and each VRaster. This yields the frequency ratio statistics
         and the reclassified grids.
     2. get_result() Compute the susceptibility grid and other related data.
-        
     3. get_src() Compute the success rate curves.
         The success rate curve is the cumulative frequency distribution
         of the landslide cells in the susceptibility categories.
@@ -417,7 +416,8 @@ class FRAnalysis():
 
         # Percentile bins of the fresult
         self.ranks = None
-
+        # Fold_susceptibility, the susceptibility grids of the folds
+        self.fold_susceptibility = None
         # Final result, the mean estimated susceptibility map over the folds.
         self.fresult = None
         # Final result in the percentile form
@@ -428,7 +428,7 @@ class FRAnalysis():
 
         # The distributions of % ranks for the validation cells.
         self.v_dist = []
-        # Bins for the above v_dist
+        # Bins for the above v_dist for conversion to percentiles
         self.v_bins = []
 
         # Frequency ratio analysis results for each VRaster and fold.
@@ -525,6 +525,7 @@ class FRAnalysis():
         rc_folds = self.rc_folds
         valid_positions = self.ls_mask.valid_positions
         result = []
+        percentile_result = []
         # percentile bins
         percentile_bins = [x * 0.01 for x in range(0, 101)]
         # Iterate over the folds of the ls_mask.
@@ -535,7 +536,7 @@ class FRAnalysis():
                 # Average the reclassified  grids of fold #i.
                 fold_result += j[i] / self.var_count
 
-            # Scoring
+            # Percentile bin edges for conversion to percentiles
             valid_perc = np.quantile(fold_result[fold_result >= 0],
                                      percentile_bins,
                                      interpolation='nearest')
@@ -560,9 +561,11 @@ class FRAnalysis():
         # of the landslide mask
         for i in range(0, self.ls_mask.fold_count):
             fresult[valid_positions[i]] = result[i][valid_positions[i]]
-        # Set invalid values to -99999 (nodata)
+        # Set all invalid values (<0) to -99999 (nodata)
         fresult[fresult < 0] = -99999
 
+        # TODO Convert fold_susceptibility to percentiles
+        self.fold_susceptibility = result
         self.fresult = fresult
         percentiles = [i*0.01 for i in range(0, 101)]
         self.ranks = np.quantile(fresult[fresult > 0], percentiles)
@@ -765,7 +768,7 @@ class FRAnalysis():
         fig, (ax1, ax2) = plt.subplots(2, 1)
         ax1.set_xlabel("Distribution of {} values in the LS and NLS areas".
                        format(name))
-        ax2.set_xlabel("{} - fold: {}".format(name, fold))
+        ax2.set_xlabel("{} - fold: {}".format(name, (fold + 1)))
         line_LS, = ax1.plot(df["min"], df["LS_density"])
         line_NLS, = ax1.plot(df["min"], df["NLS_density"])
         line_fr = ax2.plot(df["min"], df["frequency_ratio"])
