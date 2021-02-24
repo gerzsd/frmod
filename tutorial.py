@@ -1,4 +1,10 @@
-"""Tutorial script for frmod."""
+"""Tutorial script for frmod.
+
+You can use this script to perform a frequency ratio analysis on a set
+of raster grids. The results are used to estimate susceptibility to
+landslides based on the analyzed conditions. The script does the analysis
+with cross validation and gives metrics about the quality of the predictions.
+"""
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -7,6 +13,7 @@ from frmod.analysis import VRaster, LandslideMask, FRAnalysis
 
 
 if __name__ == "__main__":
+    np.random.seed(42)
     ELEVATION = VRaster(name='elevation',
                         path='./data/SRTM31_EG_GF_m.sdat',
                         bins=15,
@@ -40,7 +47,7 @@ if __name__ == "__main__":
     FRA.plot_success_rates()
 
     auc_folds = FRA.get_auc()
-    FRA.get_percentile_grid(show=True, cmap='cividis')
+    FRA.get_percentile_grid(show=True, cmap='coolwarm')
 
     # Plot the frequency ratio statistics for the 1st slope fold
     slope_1_fig = FRA.plot_var_fold_fr("slope", 0)

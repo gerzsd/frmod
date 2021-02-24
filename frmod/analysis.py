@@ -2,6 +2,7 @@
 Frequency ratio model analysis.
 
 Perform a landslide susceptibility analysis with the frequency ratio method.
+
 @author: Dávid Gerzsenyi
 """
 
