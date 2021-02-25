@@ -9,7 +9,7 @@ with cross validation and gives metrics about the quality of the predictions.
 import numpy as np
 import matplotlib.pyplot as plt
 
-from frmod.analysis import VRaster, LandslideMask, FRAnalysis
+from frmod.analysis import VRaster, LandslideMask, FRAnalysis, show_grid
 
 
 if __name__ == "__main__":
@@ -22,7 +22,7 @@ if __name__ == "__main__":
                     path='./data/SRTM31_EG_GF_Slope_m.sdat',
                     bins=15,
                     categorical=False)
-    geology = VRaster(name='geology_14',
+    geology = VRaster(name='geology_14', 
                       path='./data/fdt100_14k.sdat',
                       categorical=True)
     scarps = LandslideMask(name='scarps',
@@ -51,3 +51,5 @@ if __name__ == "__main__":
 
     # Plot the frequency ratio statistics for the 1st slope fold
     slope_1_fig = fra.plot_var_fold_fr("slope", 0)
+    # Plot the result of the 5th fold
+    show_grid(fra.fold_percentiles[4], -99999)

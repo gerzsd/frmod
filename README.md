@@ -1,11 +1,27 @@
-# Frequency ratio modeller
-Landslide susceptibility analysis of raster grids using a frequency ratio model style approach (Chung, 2006).
+# frmod - Frequency ratio modeller
+Landslide susceptibility analysis of raster grids using a frequency ratio model style approach.
+
+The frequency ratio analysis is a probabilistic method for landslide susceptibility assessment. It assumes, that landslide-affected areas in the future will have similar terrain and environmental conditions to the already landslide-affected areas. The inputs of the analysis are the landslide sample areas and the continuous or categorical data layers of the analyzed variables. The method works with raster grids.
+**The steps of the analysis:**
+
+1. Partition the study area into landslide and non-landslide subareas
+2. Compute the frequency distribution of the analyzed variables for both areas
+3. Take the ratio of the landslide and non-landslide frequency distributions - the frequency ratio - for each analyzed variable
+4. Create the frequency ratio grids: assign the frequency ratios to the corresponding values of the analyzed variable grids
+5. Get the landslide susceptibility grid: average the frequency ratio grids
+
+The frmod script uses k-fold cross validation with random splits to evaluate the results.
+1. The landslide area is split into equal sized parts, called splits.
+2. One part is attached to the non-landslide area, these are the validation pixels
+3. The result of the analysis is evaluated by checking the number of validation pixels in the different susceptibility categories
+4. This process is then repeated with each split
+5. The final susceptibility estimates are the average of the results of the runs with the different splits
 
 The package contains two modules:
-**analysis:** Conducts the frequency ratio analysis using continuous and thematic rasters and a landslide mask raster. Uses k-fold cross validation to evaluate the results.
-**utils:** Utilities for handling the input and output of georeferenced raster grids. Based mainly on code snippets from the Python GDAL/OGR Cookbook 1.0 (https://pcjericks.github.io/py-gdalogr-cookbook/)
+- **analysis:** Conducts the frequency ratio analysis using continuous and thematic rasters and a landslide mask raster. Uses k-fold cross validation to evaluate the results.  
 
-## Reference
-Chang-Jo Chung (2006). Using likelihood ratio functions for modeling the conditional probability of occurrence of future landslides for risk assessment. *Computers & Geosciences, 32* (8), 1052–1068. https://doi.org/10.1016/j.cageo.2006.02.003.
+- **utils:** Utilities for handling the input and output of georeferenced raster grids. Based mainly on code snippets from the Python GDAL/OGR Cookbook 1.0 (https://pcjericks.github.io/py-gdalogr-cookbook/)
 
-@ Dávid Gerzsenyi, 2020
+@ Dávid Gerzsenyi, 2021
+
+
