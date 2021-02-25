@@ -1,3 +1,5 @@
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/gerzsd/frmod/main?filepath=frmod_demo.ipynb)  
+  
 # frmod - Frequency ratio modeller
 Landslide susceptibility analysis of raster grids using a frequency ratio model style approach.
 
