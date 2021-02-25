@@ -1,12 +1,15 @@
 """
 Input and output utilities for handling raster files.
 
+Based mainly on code snippets from the Python GDAL/OGR Cookbook 1.0
+https://pcjericks.github.io/py-gdalogr-cookbook/
+
 @author: Dávid Gerzsenyi
 """
 
 import os
-import gdal
-import osr
+import osgeo.gdal as gdal
+import osgeo.osr as osr
 
 
 def raster2array(rasterfn):
