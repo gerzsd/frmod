@@ -143,9 +143,11 @@ def reclass_raster(vr, f_ratios, bin_edges, verbose=False):
     vr : Array
         Array of the analysed variable to be reclassified.
     f_ratios : Array
-        The frequency ratio values. Length: number of bins.
+        The frequency ratio values.
+        Length: number of bins.
     bin_edges : Array
-        Array containing the edges of the bins. Length: number of bins + 1.
+        Array containing the edges of the bins.
+        Length: number of bins + 1.
     verbose : bool
         Set True to print the bin ranges and reclass values.
 
@@ -449,6 +451,7 @@ class FRAnalysis():
         self.ranks = None
         # Fold_susceptibility, the susceptibility grids of the folds
         self.fold_susceptibility = None
+        self.fold_percentiles = []
         # Final result, the mean estimated susceptibility map over the folds.
         self.fresult = None
         # Final result in the percentile form
@@ -588,18 +591,23 @@ class FRAnalysis():
         # fresult: cell by cell average of the result array
         fresult = sum(result) / self.ls_mask.fold_count
 
-        # Assigning the results from the validation folds to the location
-        # of the landslide mask
+        # Assign the results from the validation folds to the location
+        # of the landslide mask and create the percentile grids for the folds
         for i in range(0, self.ls_mask.fold_count):
             fresult[valid_positions[i]] = result[i][valid_positions[i]]
+            result[i][result[i] &lt; 0] = -99999
+            fp = reclass_raster(result[i],
+                                percentile_bins[1:],
+                                self.valid_perc[i])
+            fp[fp &gt; 0] = fp[fp &gt; 0] * 100
+            self.fold_percentiles.append(fp)
+
         # Set all invalid values (&lt;0) to -99999 (nodata)
         fresult[fresult &lt; 0] = -99999
 
-        # TODO Convert fold_susceptibility to percentiles
         self.fold_susceptibility = result
         self.fresult = fresult
-        percentiles = [i*0.01 for i in range(0, 101)]
-        self.ranks = np.quantile(fresult[fresult &gt; 0], percentiles)
+        self.ranks = np.quantile(fresult[fresult &gt; 0], percentile_bins)
         return self.ranks
 
     def get_src(self):
@@ -753,11 +761,14 @@ class FRAnalysis():
         &#34;&#34;&#34;
         fig, ax = plt.subplots()
         label = 1
+        plt.title(&#34;Success rate curve&#34;)
         for i in self.success_rates:
             ax.plot(i, label=label)
             label += 1
         ax.set_xlim(left=0, right=99)
         ax.set_ylim(bottom=0, top=1.0)
+        ax.set_xlabel(&#34;Susceptibility, percentile&#34;)
+        ax.set_ylabel(&#34;Proportion of validation pixels&#34;)
         diag_line, = ax.plot(ax.get_xlim(), ax.get_ylim(), ls=&#34;--&#34;, c=&#34;.3&#34;)
         ax.legend()
         plt.show()
@@ -956,9 +967,11 @@ The default is 0.</dd>
 <dt><strong><code>vr</code></strong> :&ensp;<code>Array</code></dt>
 <dd>Array of the analysed variable to be reclassified.</dd>
 <dt><strong><code>f_ratios</code></strong> :&ensp;<code>Array</code></dt>
-<dd>The frequency ratio values. Length: number of bins.</dd>
+<dd>The frequency ratio values.
+Length: number of bins.</dd>
 <dt><strong><code>bin_edges</code></strong> :&ensp;<code>Array</code></dt>
-<dd>Array containing the edges of the bins. Length: number of bins + 1.</dd>
+<dd>Array containing the edges of the bins.
+Length: number of bins + 1.</dd>
 <dt><strong><code>verbose</code></strong> :&ensp;<code>bool</code></dt>
 <dd>Set True to print the bin ranges and reclass values.</dd>
 </dl>
@@ -980,9 +993,11 @@ The default is 0.</dd>
     vr : Array
         Array of the analysed variable to be reclassified.
     f_ratios : Array
-        The frequency ratio values. Length: number of bins.
+        The frequency ratio values.
+        Length: number of bins.
     bin_edges : Array
-        Array containing the edges of the bins. Length: number of bins + 1.
+        Array containing the edges of the bins.
+        Length: number of bins + 1.
     verbose : bool
         Set True to print the bin ranges and reclass values.
 
@@ -1162,6 +1177,7 @@ of the ls_mask for each VRaster in the var_list.</p>
         self.ranks = None
         # Fold_susceptibility, the susceptibility grids of the folds
         self.fold_susceptibility = None
+        self.fold_percentiles = []
         # Final result, the mean estimated susceptibility map over the folds.
         self.fresult = None
         # Final result in the percentile form
@@ -1301,18 +1317,23 @@ of the ls_mask for each VRaster in the var_list.</p>
         # fresult: cell by cell average of the result array
         fresult = sum(result) / self.ls_mask.fold_count
 
-        # Assigning the results from the validation folds to the location
-        # of the landslide mask
+        # Assign the results from the validation folds to the location
+        # of the landslide mask and create the percentile grids for the folds
         for i in range(0, self.ls_mask.fold_count):
             fresult[valid_positions[i]] = result[i][valid_positions[i]]
+            result[i][result[i] &lt; 0] = -99999
+            fp = reclass_raster(result[i],
+                                percentile_bins[1:],
+                                self.valid_perc[i])
+            fp[fp &gt; 0] = fp[fp &gt; 0] * 100
+            self.fold_percentiles.append(fp)
+
         # Set all invalid values (&lt;0) to -99999 (nodata)
         fresult[fresult &lt; 0] = -99999
 
-        # TODO Convert fold_susceptibility to percentiles
         self.fold_susceptibility = result
         self.fresult = fresult
-        percentiles = [i*0.01 for i in range(0, 101)]
-        self.ranks = np.quantile(fresult[fresult &gt; 0], percentiles)
+        self.ranks = np.quantile(fresult[fresult &gt; 0], percentile_bins)
         return self.ranks
 
     def get_src(self):
@@ -1466,11 +1487,14 @@ of the ls_mask for each VRaster in the var_list.</p>
         &#34;&#34;&#34;
         fig, ax = plt.subplots()
         label = 1
+        plt.title(&#34;Success rate curve&#34;)
         for i in self.success_rates:
             ax.plot(i, label=label)
             label += 1
         ax.set_xlim(left=0, right=99)
         ax.set_ylim(bottom=0, top=1.0)
+        ax.set_xlabel(&#34;Susceptibility, percentile&#34;)
+        ax.set_ylabel(&#34;Proportion of validation pixels&#34;)
         diag_line, = ax.plot(ax.get_xlim(), ax.get_ylim(), ls=&#34;--&#34;, c=&#34;.3&#34;)
         ax.legend()
         plt.show()
@@ -1667,18 +1691,23 @@ Keywords passed to show_grid.</p>
     # fresult: cell by cell average of the result array
     fresult = sum(result) / self.ls_mask.fold_count
 
-    # Assigning the results from the validation folds to the location
-    # of the landslide mask
+    # Assign the results from the validation folds to the location
+    # of the landslide mask and create the percentile grids for the folds
     for i in range(0, self.ls_mask.fold_count):
         fresult[valid_positions[i]] = result[i][valid_positions[i]]
+        result[i][result[i] &lt; 0] = -99999
+        fp = reclass_raster(result[i],
+                            percentile_bins[1:],
+                            self.valid_perc[i])
+        fp[fp &gt; 0] = fp[fp &gt; 0] * 100
+        self.fold_percentiles.append(fp)
+
     # Set all invalid values (&lt;0) to -99999 (nodata)
     fresult[fresult &lt; 0] = -99999
 
-    # TODO Convert fold_susceptibility to percentiles
     self.fold_susceptibility = result
     self.fresult = fresult
-    percentiles = [i*0.01 for i in range(0, 101)]
-    self.ranks = np.quantile(fresult[fresult &gt; 0], percentiles)
+    self.ranks = np.quantile(fresult[fresult &gt; 0], percentile_bins)
     return self.ranks</code></pre>
 </details>
 </dd>
@@ -1756,11 +1785,14 @@ test landslide cells (pixels) in the susceptibility categories.</p>
     &#34;&#34;&#34;
     fig, ax = plt.subplots()
     label = 1
+    plt.title(&#34;Success rate curve&#34;)
     for i in self.success_rates:
         ax.plot(i, label=label)
         label += 1
     ax.set_xlim(left=0, right=99)
     ax.set_ylim(bottom=0, top=1.0)
+    ax.set_xlabel(&#34;Susceptibility, percentile&#34;)
+    ax.set_ylabel(&#34;Proportion of validation pixels&#34;)
     diag_line, = ax.plot(ax.get_xlim(), ax.get_ylim(), ls=&#34;--&#34;, c=&#34;.3&#34;)
     ax.legend()
     plt.show()
