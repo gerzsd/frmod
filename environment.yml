@@ -5,7 +5,7 @@ dependencies:
   - python
   - numpy
   - pip
-  - gdal=2.3.3
+  - gdal
   - pip:
     - pandas
     - matplotlib
