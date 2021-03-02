@@ -11,18 +11,17 @@ import matplotlib.pyplot as plt
 
 from frmod.analysis import VRaster, LandslideMask, FRAnalysis, show_grid
 
-
 if __name__ == "__main__":
-    np.random.seed(42)
+    np.random.seed(2021)
     elevation = VRaster(name='elevation',
                         path='./data/SRTM31_EG_GF_m.sdat',
-                        bins=15,
+                        bins=50,
                         categorical=False)
     slope = VRaster(name='slope',
                     path='./data/SRTM31_EG_GF_Slope_m.sdat',
-                    bins=15,
+                    bins=20,
                     categorical=False)
-    geology = VRaster(name='geology_14', 
+    geology = VRaster(name='geology_14',
                       path='./data/fdt100_14k.sdat',
                       categorical=True)
     scarps = LandslideMask(name='scarps',
@@ -30,9 +29,12 @@ if __name__ == "__main__":
                            ls_marker=1,
                            fold_count=5)
     fra = FRAnalysis(ls_mask=scarps,
-                     var_list=[slope,
-                               geology,
-                               elevation]
+                     var_list=[
+                         slope,
+                         geology,
+                         elevation
+                        ],
+                     classic_mode=True
                      )
 
     fra.get_result()
