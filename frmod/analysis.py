@@ -745,7 +745,7 @@ class FRAnalysis():
         plt.show()
         return fig, ax
 
-    def plot_var_fold_fr(self, name, fold, **kwargs):
+    def plot_var_fold_fr(self, name, fold):
         """
         Plot the densities and the frequency ratio for a fold of one variable.
 

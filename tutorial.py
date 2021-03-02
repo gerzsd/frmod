@@ -28,7 +28,7 @@ if __name__ == "__main__":
     scarps = LandslideMask(name='scarps',
                            path='./data/scarps.sdat',
                            ls_marker=1,
-                           fold_count=2)
+                           fold_count=5)
     fra = FRAnalysis(ls_mask=scarps,
                      var_list=[slope,
                                geology,
