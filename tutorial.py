@@ -28,7 +28,7 @@ if __name__ == "__main__":
     scarps = LandslideMask(name='scarps',
                            path='./data/scarps.sdat',
                            ls_marker=1,
-                           fold_count=5)
+                           fold_count=2)
     fra = FRAnalysis(ls_mask=scarps,
                      var_list=[slope,
                                geology,
@@ -52,4 +52,4 @@ if __name__ == "__main__":
     # Plot the frequency ratio statistics for the 1st slope fold
     slope_1_fig = fra.plot_var_fold_fr("slope", 0)
     # Plot the result of the 5th fold
-    show_grid(fra.fold_percentiles[4], -99999)
+    show_grid(fra.fold_percentiles[0], -99999)
