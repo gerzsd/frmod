@@ -55,6 +55,8 @@ def get_freq_ratios(vr,
         The frequency ratio values. Length: number of bins.
     hst_bins : Array
         Array containing the edges of the bins. Length: number of bins + 1.
+    fr_stat_df : pandas.DataFrame
+        DataFrame with the statistics.
 
     """
     ls_area = np.count_nonzero(mask == ls_marker)
@@ -780,9 +782,9 @@ class FRAnalysis():
         ax1.set_xlabel("Distribution of {} values in the LS and NLS areas".
                        format(name))
         ax2.set_xlabel("{} - fold: {}".format(name, (fold + 1)))
-        line_LS, = ax1.plot(df["min"], df["LS_density"])
-        line_NLS, = ax1.plot(df["min"], df["NLS_density"])
-        line_fr = ax2.plot(df["min"], df["frequency_ratio"])
+        line_LS, = ax1.plot(df["min"], df["LS_density"], marker="x")
+        line_NLS, = ax1.plot(df["min"], df["NLS_density"], marker="x")
+        line_fr = ax2.plot(df["min"], df["frequency_ratio"], marker="x")
         ax1.set_ylim(bottom=0)
         ax2.set_ylim(bottom=0)
         ax1.set_xlim(left=df["min"][0])
