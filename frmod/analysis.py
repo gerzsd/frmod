@@ -631,6 +631,7 @@ class FRAnalysis():
         # Iterate over the folds of the ls_mask.
         for i in range(0, self.ls_mask.fold_count):
             fold_result = np.zeros(rc_folds[0][0].shape)
+            
             # Iterate over the reclassified grids of fold #i
             for j in rc_folds:
                 # Average the reclassified  grids of fold #i.
