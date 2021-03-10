@@ -156,3 +156,4 @@ dmypy.json
 
 #Pylint
 /.pylint.d
+.vscode/settings.json
