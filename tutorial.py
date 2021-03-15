@@ -54,4 +54,4 @@ if __name__ == "__main__":
     # Plot the frequency ratio statistics for the 1st slope fold
     slope_1_fig = fra.plot_var_fold_fr("slope", 0)
     # Plot the result of the 5th fold
-    show_grid(fra.fold_percentiles[4], -99999)
+    show_grid(fra.fold_percentiles[0], -99999)
