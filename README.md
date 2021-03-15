@@ -3,14 +3,16 @@
 # frmod - Frequency ratio modeller
 Landslide susceptibility analysis of raster grids using a frequency ratio model style approach.
 
-The frequency ratio analysis is a probabilistic method for landslide susceptibility assessment. It assumes, that landslide-affected areas in the future will have similar terrain and environmental conditions to the already landslide-affected areas. The inputs of the analysis are the landslide sample areas and the continuous or categorical data layers of the analyzed variables. The method works with raster grids.
-**The steps of the analysis:**
+The script uses a probabilistic method for landslide susceptibility assessment. It assumes, that landslide-affected areas in the future will have similar terrain and environmental conditions to the already landslide-affected areas. The inputs of the analysis are the landslide sample areas and the continuous or categorical data layers of the analyzed variables. The method works with raster grids. The analysis has two variations, the frequency ratio and the likelihood ratio.  
+The steps of the analysis:  
 
-1. Partition the study area into landslide and non-landslide subareas
-2. Compute the frequency distribution of the analyzed variables for both areas
-3. Take the ratio of the landslide and non-landslide frequency distributions - the frequency ratio - for each analyzed variable
-4. Create the frequency ratio grids: assign the frequency ratios to the corresponding values of the analyzed variable grids
-5. Get the landslide susceptibility grid: average the frequency ratio grids
+1. Partition the study area into landslide and non-landslide subareas  
+2. Compute the frequency distribution of the analyzed variables for the landslide, the non-landslide, and the total area 
+3. Compute the ratios (weights)
+- Frequency ratio: Take the ratio of the landslide and total area frequency distributions - *the frequency ratio* - for each analyzed variable
+- Likelihood ratio: Take the ratio of the landslide and non-landslide frequency distributions - *the likelihood ratio* - for each analyzed variable
+4. Create the **weighted grids**: assign the ratios to the corresponding values of the analyzed variable grids
+5. Get the landslide **susceptibility grid**: average the **weighted grids**
 
 The frmod script uses k-fold cross validation with random splits to evaluate the results.
 1. The landslide area is split into equal sized parts, called splits.
