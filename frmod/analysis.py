@@ -15,6 +15,93 @@ import pandas as pd
 import frmod.utils as utils
 
 
+def get_freq_ratios_classic(vr,
+                            mask,
+                            binc=20,
+                            nodata=-99999.,
+                            categorical=False,
+                            ls_marker=1,
+                            nls_marker=0):
+    """
+    Get the frequency ratio of the landslide parts and the whole area.
+
+    Parameters
+    ----------
+    vr : Array
+        The array of the analyzed variable. Numeric values.
+    mask : Array
+        The array of the mask.
+    binc : int, optional
+        Bin count for the histogram of the non-categorical variables.
+        The default is 20.
+    nodata : int / float, optional
+        The nodata value of the vr grid.
+        The default is -99999..
+    categorical : bool, optional
+        Set true if the analysed variable raster is categorical.
+        Categories must be marked with unique integers in the rasters.
+        The dafault is False.
+    ls_marker : int, optional
+        The value marking the landslide parts.
+        The default is 1.
+    nls_marker : int, optional
+        The value marking the non-landslide parts.
+        The default is 0.
+
+    Returns
+    -------
+    frequency_ratios : Array
+        The frequency ratio values. Length: number of bins.
+    hst_bins : Array
+        Array containing the edges of the bins. Length: number of bins + 1.
+    fr_stat_df : pandas.DataFrame
+        DataFrame with the statistics.
+        Columns:
+            'min', 'max', 'LS_density', 'NLS_density', 'frequency_ratio'.
+
+    """
+    vr = np.ma.masked_where((vr == nodata), vr)
+    in_all = np.logical_or(mask == ls_marker, mask == nls_marker)
+    ls_area = np.count_nonzero(mask == ls_marker)
+    all_area = np.count_nonzero(mask == nls_marker) + ls_area
+    if categorical:
+        bin_edges = np.unique(vr[in_all])
+        bin_edges = np.append(bin_edges, bin_edges[-1] + 1)
+        ls_hst = np.histogram(vr[mask == ls_marker],
+                              bins=bin_edges,
+                              density=False)
+        all_hst = np.histogram(vr[in_all],
+                               bins=bin_edges,
+                               density=False)
+    else:
+        glob_lim = (vr[in_all].min(),
+                    vr[in_all].max())
+        ls_hst = np.histogram(vr[mask == ls_marker], bins=binc,
+                              range=glob_lim, density=False)
+        all_hst = np.histogram(vr[in_all], bins=binc,
+                               range=glob_lim, density=False)
+
+    # Histogram density for the landslide part
+    ls_hst_d = ls_hst[0] / ls_area
+    # Histogram density for the non-landslide part
+    all_hst_d = all_hst[0] / all_area
+    frequency_ratios = ls_hst_d / all_hst_d
+
+    hst_bins = all_hst[1]
+    mn = hst_bins[:-1]
+    mx = hst_bins[1:]
+
+    # Create a pd.DataFrame for the bins, densities, and the frequency ratio
+    data = [mn, mx, ls_hst_d, all_hst_d, frequency_ratios]
+    # columns = ["Min", "Max", "LS_density", "NLS_density", "frequency_ratio"]
+    data = {'min': mn,
+            'max': mx,
+            'LS_density': ls_hst_d,
+            'NLS_density': all_hst_d,
+            'frequency_ratio': frequency_ratios}
+    fr_stat_df = pd.DataFrame(data=data)
+    return frequency_ratios, hst_bins, fr_stat_df
+
 def get_freq_ratios(vr,
                     mask,
                     binc=100,
@@ -382,7 +469,7 @@ class FRAnalysis():
         Smaller values are better.
     """
 
-    def __init__(self, ls_mask, var_list):
+    def __init__(self, ls_mask, var_list, classic_mode=True):
         """
         Create the FRAnalysis object.
 
@@ -403,6 +490,8 @@ class FRAnalysis():
         None.
 
         """
+        # Mode
+        self.classic_mode=classic_mode
         # Input LandslideMask
         self.ls_mask = ls_mask
         # List of input VRasters
@@ -484,13 +573,20 @@ class FRAnalysis():
         # Run the analysis with the training areas of the different folds
         # Iterating over the train_areas of the folds
         for msk in lsm.train_areas:
-            fr_data = get_freq_ratios(vr=vrr.grid,
-                                      mask=msk,
-                                      binc=vrr.bins,
-                                      nodata=vrr.nodata,
-                                      categorical=vrr.categorical,
-                                      normalize=False
-                                      )
+            if self.classic_mode:
+                fr_data = get_freq_ratios_classic(vr=vrr.grid,
+                                                  mask=msk,
+                                                  binc=vrr.bins,
+                                                  nodata=vrr.nodata,
+                                                  categorical=vrr.categorical)
+            else:
+                fr_data = get_freq_ratios(vr=vrr.grid,
+                                          mask=msk,
+                                          binc=vrr.bins,
+                                          nodata=vrr.nodata,
+                                          categorical=vrr.categorical,
+                                          normalize=False
+                                          )
             frq_ratios = fr_data[0]
             hst_bins = fr_data[1]
             # pd.DataFrame with the densities and the frequency ratios
@@ -530,12 +626,14 @@ class FRAnalysis():
         rc_folds = self.rc_folds
         valid_positions = self.ls_mask.valid_positions
         result = []
+        # TODO remove percentile_result if really not used
         percentile_result = []
         # percentile bins
         percentile_bins = [x * 0.01 for x in range(0, 101)]
         # Iterate over the folds of the ls_mask.
         for i in range(0, self.ls_mask.fold_count):
             fold_result = np.zeros(rc_folds[0][0].shape)
+            
             # Iterate over the reclassified grids of fold #i
             for j in rc_folds:
                 # Average the reclassified  grids of fold #i.
