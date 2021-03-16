@@ -1,3 +1,4 @@
+Click the Binder button below for the interactive guide on frmod's features.
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/gerzsd/frmod/main?filepath=frmod_demo.ipynb)  
   
 # frmod - Frequency ratio modeller
