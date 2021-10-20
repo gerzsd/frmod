@@ -5,7 +5,7 @@ Click the Binder button below for the interactive guide on frmod's features.
 # frmod - Frequency ratio modeller
 Landslide susceptibility analysis of raster grids using a frequency ratio model style approach.
 
-The script uses a probabilistic method for landslide susceptibility assessment. It assumes, that landslide-affected areas in the future will have similar terrain and environmental conditions to the already landslide-affected areas. The inputs of the analysis are the landslide sample areas and the continuous or categorical data layers of the analyzed variables. The method works with raster grids. The analysis has two variations, the frequency ratio and the likelihood ratio.  
+The script uses a probabilistic method for landslide susceptibility assessment. It is assumed, that landslide-affected areas in the future will have similar terrain and environmental conditions to the already landslide-affected areas. The inputs of the analysis are the landslide sample areas and the continuous or categorical data layers of the analyzed variables. The method works with raster grids. The analysis has two variations, the frequency ratio and the likelihood ratio.  
 The steps of the analysis:  
 
 1. Partition the study area into landslide and non-landslide subareas  
