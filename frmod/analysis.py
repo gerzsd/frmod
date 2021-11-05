@@ -484,6 +484,9 @@ class FRAnalysis():
             The LandslideMask object for the analysis.
         var_list : list
             List of VRaster objects to be analyzed.
+        classic_mode : bool
+            True: get frequency ratios with get_freq_ratios_classic
+            False: get likelihood ratios with get_freq_ratios
 
         Returns
         -------
