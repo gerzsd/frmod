@@ -173,6 +173,8 @@ def get_freq_ratios(vr,
         The frequency ratio values. Length: number of bins.
     hst_bins : Array
         Array containing the edges of the bins. Length: number of bins + 1.
+    fr_stat_df : pandas.DataFrame
+        DataFrame with the statistics.
 
     &#34;&#34;&#34;
     ls_area = np.count_nonzero(mask == ls_marker)
@@ -513,6 +515,9 @@ class FRAnalysis():
             The LandslideMask object for the analysis.
         var_list : list
             List of VRaster objects to be analyzed.
+        classic_mode : bool
+            True: get frequency ratios with get_freq_ratios_classic
+            False: get likelihood ratios with get_freq_ratios
 
         Returns
         -------
@@ -909,9 +914,9 @@ class FRAnalysis():
         ax1.set_xlabel(&#34;Distribution of {} values in the LS and NLS areas&#34;.
                        format(name))
         ax2.set_xlabel(&#34;{} - fold: {}&#34;.format(name, (fold + 1)))
-        line_LS, = ax1.plot(df[&#34;min&#34;], df[&#34;LS_density&#34;])
-        line_NLS, = ax1.plot(df[&#34;min&#34;], df[&#34;NLS_density&#34;])
-        line_fr = ax2.plot(df[&#34;min&#34;], df[&#34;frequency_ratio&#34;])
+        line_LS, = ax1.plot(df[&#34;min&#34;], df[&#34;LS_density&#34;], marker=&#34;x&#34;)
+        line_NLS, = ax1.plot(df[&#34;min&#34;], df[&#34;NLS_density&#34;], marker=&#34;x&#34;)
+        line_fr = ax2.plot(df[&#34;min&#34;], df[&#34;frequency_ratio&#34;], marker=&#34;x&#34;)
         ax1.set_ylim(bottom=0)
         ax2.set_ylim(bottom=0)
         ax1.set_xlim(left=df[&#34;min&#34;][0])
@@ -964,6 +969,8 @@ The default is 0.</dd>
 <dd>The frequency ratio values. Length: number of bins.</dd>
 <dt><strong><code>hst_bins</code></strong> :&ensp;<code>Array</code></dt>
 <dd>Array containing the edges of the bins. Length: number of bins + 1.</dd>
+<dt><strong><code>fr_stat_df</code></strong> :&ensp;<code>pandas.DataFrame</code></dt>
+<dd>DataFrame with the statistics.</dd>
 </dl></div>
 <details class="source">
 <summary>
@@ -1009,6 +1016,8 @@ The default is 0.</dd>
         The frequency ratio values. Length: number of bins.
     hst_bins : Array
         Array containing the edges of the bins. Length: number of bins + 1.
+    fr_stat_df : pandas.DataFrame
+        DataFrame with the statistics.
 
     &#34;&#34;&#34;
     ls_area = np.count_nonzero(mask == ls_marker)
@@ -1341,6 +1350,9 @@ of the ls_mask for each VRaster in the var_list.</p>
 <dd>The LandslideMask object for the analysis.</dd>
 <dt><strong><code>var_list</code></strong> :&ensp;<code>list</code></dt>
 <dd>List of VRaster objects to be analyzed.</dd>
+<dt><strong><code>classic_mode</code></strong> :&ensp;<code>bool</code></dt>
+<dd>True: get frequency ratios with get_freq_ratios_classic
+False: get likelihood ratios with get_freq_ratios</dd>
 </dl>
 <h2 id="returns">Returns</h2>
 <p>None.</p></div>
@@ -1381,6 +1393,9 @@ of the ls_mask for each VRaster in the var_list.</p>
             The LandslideMask object for the analysis.
         var_list : list
             List of VRaster objects to be analyzed.
+        classic_mode : bool
+            True: get frequency ratios with get_freq_ratios_classic
+            False: get likelihood ratios with get_freq_ratios
 
         Returns
         -------
@@ -1777,9 +1792,9 @@ of the ls_mask for each VRaster in the var_list.</p>
         ax1.set_xlabel(&#34;Distribution of {} values in the LS and NLS areas&#34;.
                        format(name))
         ax2.set_xlabel(&#34;{} - fold: {}&#34;.format(name, (fold + 1)))
-        line_LS, = ax1.plot(df[&#34;min&#34;], df[&#34;LS_density&#34;])
-        line_NLS, = ax1.plot(df[&#34;min&#34;], df[&#34;NLS_density&#34;])
-        line_fr = ax2.plot(df[&#34;min&#34;], df[&#34;frequency_ratio&#34;])
+        line_LS, = ax1.plot(df[&#34;min&#34;], df[&#34;LS_density&#34;], marker=&#34;x&#34;)
+        line_NLS, = ax1.plot(df[&#34;min&#34;], df[&#34;NLS_density&#34;], marker=&#34;x&#34;)
+        line_fr = ax2.plot(df[&#34;min&#34;], df[&#34;frequency_ratio&#34;], marker=&#34;x&#34;)
         ax1.set_ylim(bottom=0)
         ax2.set_ylim(bottom=0)
         ax1.set_xlim(left=df[&#34;min&#34;][0])
@@ -2113,9 +2128,9 @@ df = self.fr_stats_full[name][fold]</p>
     ax1.set_xlabel(&#34;Distribution of {} values in the LS and NLS areas&#34;.
                    format(name))
     ax2.set_xlabel(&#34;{} - fold: {}&#34;.format(name, (fold + 1)))
-    line_LS, = ax1.plot(df[&#34;min&#34;], df[&#34;LS_density&#34;])
-    line_NLS, = ax1.plot(df[&#34;min&#34;], df[&#34;NLS_density&#34;])
-    line_fr = ax2.plot(df[&#34;min&#34;], df[&#34;frequency_ratio&#34;])
+    line_LS, = ax1.plot(df[&#34;min&#34;], df[&#34;LS_density&#34;], marker=&#34;x&#34;)
+    line_NLS, = ax1.plot(df[&#34;min&#34;], df[&#34;NLS_density&#34;], marker=&#34;x&#34;)
+    line_fr = ax2.plot(df[&#34;min&#34;], df[&#34;frequency_ratio&#34;], marker=&#34;x&#34;)
     ax1.set_ylim(bottom=0)
     ax2.set_ylim(bottom=0)
     ax1.set_xlim(left=df[&#34;min&#34;][0])
