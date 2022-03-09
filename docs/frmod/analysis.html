@@ -746,6 +746,7 @@ class FRAnalysis():
             AUC values for the folds.
 
         &#34;&#34;&#34;
+        self.auc_folds = []
         for i in self.success_rates:
             auc_of_fold = np.sum(i)
             self.auc_folds.append(auc_of_fold)
@@ -1624,6 +1625,7 @@ False: get likelihood ratios with get_freq_ratios</dd>
             AUC values for the folds.
 
         &#34;&#34;&#34;
+        self.auc_folds = []
         for i in self.success_rates:
             auc_of_fold = np.sum(i)
             self.auc_folds.append(auc_of_fold)
@@ -1831,6 +1833,7 @@ False: get likelihood ratios with get_freq_ratios</dd>
         AUC values for the folds.
 
     &#34;&#34;&#34;
+    self.auc_folds = []
     for i in self.success_rates:
         auc_of_fold = np.sum(i)
         self.auc_folds.append(auc_of_fold)
