@@ -733,6 +733,7 @@ class FRAnalysis():
             AUC values for the folds.
 
         """
+        self.auc_folds = []
         for i in self.success_rates:
             auc_of_fold = np.sum(i)
             self.auc_folds.append(auc_of_fold)
