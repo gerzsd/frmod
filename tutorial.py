@@ -37,7 +37,7 @@ if __name__ == "__main__":
                      classic_mode=True
                      )
 
-    fra.get_result()
+    fra.get_result(product=False)
 
     # Display the results
     fra.show_results(cmap='coolwarm')
