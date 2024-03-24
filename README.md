@@ -14,7 +14,7 @@ The steps of the analysis:
 - Frequency ratio: Take the ratio of the landslide and total area frequency distributions - *the frequency ratio* - for each analyzed variable
 - Likelihood ratio: Take the ratio of the landslide and non-landslide frequency distributions - *the likelihood ratio* - for each analyzed variable
 4. Create the **weighted grids**: assign the ratios to the corresponding values of the analyzed variable grids
-5. Get the landslide **susceptibility grid**: average the **weighted grids**
+5. Get the landslide **susceptibility grid**: average the **weighted grids** or take the product of the **weighted grids**
 
 The frmod script uses k-fold cross validation with random splits to evaluate the results.
 1. The landslide area is split into equal sized parts, called splits.
@@ -28,6 +28,6 @@ The package contains two modules:
 
 - **utils:** Utilities for handling the input and output of georeferenced raster grids. Based mainly on code snippets from the Python GDAL/OGR Cookbook 1.0 (https://pcjericks.github.io/py-gdalogr-cookbook/)
 
-@ Dávid Gerzsenyi, 2021
+@ Dávid Gerzsenyi, 2024
 
 

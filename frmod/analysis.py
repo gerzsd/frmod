@@ -619,6 +619,15 @@ class FRAnalysis():
     def get_result(self, product=False):
         """
         Get the susceptibility estimation and ranks.
+        
+        Parameters
+        ----------
+        product : bool, optional
+            If true: the final susceptibility is calculated as the product
+            of the susceptibility grids of the folds.
+            If false: the final susceptibility is calculated as the average
+            of the susceptibility grids of the folds.
+            Default is false.
 
         Returns
         -------
@@ -652,6 +661,9 @@ class FRAnalysis():
             valid_perc = np.quantile(fold_result[fold_result >= 0],
                                      percentile_bins,
                                      interpolation='nearest')
+# TODO 
+# Users of the modes 'nearest', 'lower', 'higher', or 'midpoint'
+# are encouraged to review the method they used. (Deprecated NumPy 1.22)
 
             self.valid_perc.append(valid_perc)
             v_to_score = fold_result[valid_positions[i]]
