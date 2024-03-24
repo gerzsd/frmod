@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name='frmod',
-    version='0.1.4',
+    version='0.1.5',
     author='Dávid Gerzsenyi',
     author_email='gerzsd@student.elte.hu',
     description='Landslide susceptibility analysis using frequency or likelihood ratios',

@@ -616,9 +616,18 @@ class FRAnalysis():
         self.stats[vrr.name] = stat_df
         return rc_folds
 
-    def get_result(self):
+    def get_result(self, product=False):
         """
         Get the susceptibility estimation and ranks.
+        
+        Parameters
+        ----------
+        product : bool, optional
+            If true: the final susceptibility is calculated as the product
+            of the susceptibility grids of the folds.
+            If false: the final susceptibility is calculated as the average
+            of the susceptibility grids of the folds.
+            Default is false.
 
         Returns
         -------
@@ -635,17 +644,26 @@ class FRAnalysis():
         percentile_bins = [x * 0.01 for x in range(0, 101)]
         # Iterate over the folds of the ls_mask.
         for i in range(0, self.ls_mask.fold_count):
-            fold_result = np.zeros(rc_folds[0][0].shape)
-            
+            if product:
+                fold_result = np.ones(rc_folds[0][0].shape)
+            else:
+                fold_result = np.zeros(rc_folds[0][0].shape)
+
             # Iterate over the reclassified grids of fold #i
             for j in rc_folds:
-                # Average the reclassified  grids of fold #i.
-                fold_result += j[i] / self.var_count
+                if product:
+                    fold_result *= j[i]
+                else:
+                    # Average the reclassified  grids of fold #i.
+                    fold_result += j[i] / self.var_count
 
             # Percentile bin edges for conversion to percentiles
             valid_perc = np.quantile(fold_result[fold_result >= 0],
                                      percentile_bins,
                                      interpolation='nearest')
+# TODO 
+# Users of the modes 'nearest', 'lower', 'higher', or 'midpoint'
+# are encouraged to review the method they used. (Deprecated NumPy 1.22)
 
             self.valid_perc.append(valid_perc)
             v_to_score = fold_result[valid_positions[i]]
@@ -671,7 +689,7 @@ class FRAnalysis():
             fp = reclass_raster(result[i],
                                 percentile_bins[1:],
                                 self.valid_perc[i])
-            fp[fp > 0] = fp[fp > 0] * 100
+            fp[fp >= 0] = fp[fp >= 0] * 100
             self.fold_percentiles.append(fp)
 
         # Set all invalid values (<0) to -99999 (nodata)
@@ -679,7 +697,7 @@ class FRAnalysis():
 
         self.fold_susceptibility = result
         self.fresult = fresult
-        self.ranks = np.quantile(fresult[fresult > 0], percentile_bins)
+        self.ranks = np.quantile(fresult[fresult >= 0], percentile_bins)
         return self.ranks
 
     def get_src(self):

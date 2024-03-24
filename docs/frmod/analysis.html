@@ -647,9 +647,18 @@ class FRAnalysis():
         self.stats[vrr.name] = stat_df
         return rc_folds
 
-    def get_result(self):
+    def get_result(self, product=False):
         &#34;&#34;&#34;
         Get the susceptibility estimation and ranks.
+        
+        Parameters
+        ----------
+        product : bool, optional
+            If true: the final susceptibility is calculated as the product
+            of the susceptibility grids of the folds.
+            If false: the final susceptibility is calculated as the average
+            of the susceptibility grids of the folds.
+            Default is false.
 
         Returns
         -------
@@ -666,17 +675,26 @@ class FRAnalysis():
         percentile_bins = [x * 0.01 for x in range(0, 101)]
         # Iterate over the folds of the ls_mask.
         for i in range(0, self.ls_mask.fold_count):
-            fold_result = np.zeros(rc_folds[0][0].shape)
-            
+            if product:
+                fold_result = np.ones(rc_folds[0][0].shape)
+            else:
+                fold_result = np.zeros(rc_folds[0][0].shape)
+
             # Iterate over the reclassified grids of fold #i
             for j in rc_folds:
-                # Average the reclassified  grids of fold #i.
-                fold_result += j[i] / self.var_count
+                if product:
+                    fold_result *= j[i]
+                else:
+                    # Average the reclassified  grids of fold #i.
+                    fold_result += j[i] / self.var_count
 
             # Percentile bin edges for conversion to percentiles
             valid_perc = np.quantile(fold_result[fold_result &gt;= 0],
                                      percentile_bins,
                                      interpolation=&#39;nearest&#39;)
+# TODO 
+# Users of the modes &#39;nearest&#39;, &#39;lower&#39;, &#39;higher&#39;, or &#39;midpoint&#39;
+# are encouraged to review the method they used. (Deprecated NumPy 1.22)
 
             self.valid_perc.append(valid_perc)
             v_to_score = fold_result[valid_positions[i]]
@@ -702,7 +720,7 @@ class FRAnalysis():
             fp = reclass_raster(result[i],
                                 percentile_bins[1:],
                                 self.valid_perc[i])
-            fp[fp &gt; 0] = fp[fp &gt; 0] * 100
+            fp[fp &gt;= 0] = fp[fp &gt;= 0] * 100
             self.fold_percentiles.append(fp)
 
         # Set all invalid values (&lt;0) to -99999 (nodata)
@@ -710,7 +728,7 @@ class FRAnalysis():
 
         self.fold_susceptibility = result
         self.fresult = fresult
-        self.ranks = np.quantile(fresult[fresult &gt; 0], percentile_bins)
+        self.ranks = np.quantile(fresult[fresult &gt;= 0], percentile_bins)
         return self.ranks
 
     def get_src(self):
@@ -1526,9 +1544,18 @@ False: get likelihood ratios with get_freq_ratios</dd>
         self.stats[vrr.name] = stat_df
         return rc_folds
 
-    def get_result(self):
+    def get_result(self, product=False):
         &#34;&#34;&#34;
         Get the susceptibility estimation and ranks.
+        
+        Parameters
+        ----------
+        product : bool, optional
+            If true: the final susceptibility is calculated as the product
+            of the susceptibility grids of the folds.
+            If false: the final susceptibility is calculated as the average
+            of the susceptibility grids of the folds.
+            Default is false.
 
         Returns
         -------
@@ -1545,17 +1572,26 @@ False: get likelihood ratios with get_freq_ratios</dd>
         percentile_bins = [x * 0.01 for x in range(0, 101)]
         # Iterate over the folds of the ls_mask.
         for i in range(0, self.ls_mask.fold_count):
-            fold_result = np.zeros(rc_folds[0][0].shape)
-            
+            if product:
+                fold_result = np.ones(rc_folds[0][0].shape)
+            else:
+                fold_result = np.zeros(rc_folds[0][0].shape)
+
             # Iterate over the reclassified grids of fold #i
             for j in rc_folds:
-                # Average the reclassified  grids of fold #i.
-                fold_result += j[i] / self.var_count
+                if product:
+                    fold_result *= j[i]
+                else:
+                    # Average the reclassified  grids of fold #i.
+                    fold_result += j[i] / self.var_count
 
             # Percentile bin edges for conversion to percentiles
             valid_perc = np.quantile(fold_result[fold_result &gt;= 0],
                                      percentile_bins,
                                      interpolation=&#39;nearest&#39;)
+# TODO 
+# Users of the modes &#39;nearest&#39;, &#39;lower&#39;, &#39;higher&#39;, or &#39;midpoint&#39;
+# are encouraged to review the method they used. (Deprecated NumPy 1.22)
 
             self.valid_perc.append(valid_perc)
             v_to_score = fold_result[valid_positions[i]]
@@ -1581,7 +1617,7 @@ False: get likelihood ratios with get_freq_ratios</dd>
             fp = reclass_raster(result[i],
                                 percentile_bins[1:],
                                 self.valid_perc[i])
-            fp[fp &gt; 0] = fp[fp &gt; 0] * 100
+            fp[fp &gt;= 0] = fp[fp &gt;= 0] * 100
             self.fold_percentiles.append(fp)
 
         # Set all invalid values (&lt;0) to -99999 (nodata)
@@ -1589,7 +1625,7 @@ False: get likelihood ratios with get_freq_ratios</dd>
 
         self.fold_susceptibility = result
         self.fresult = fresult
-        self.ranks = np.quantile(fresult[fresult &gt; 0], percentile_bins)
+        self.ranks = np.quantile(fresult[fresult &gt;= 0], percentile_bins)
         return self.ranks
 
     def get_src(self):
@@ -1891,10 +1927,19 @@ Keywords passed to show_grid.</p>
 </details>
 </dd>
 <dt id="frmod.analysis.FRAnalysis.get_result"><code class="name flex">
-<span>def <span class="ident">get_result</span></span>(<span>self)</span>
+<span>def <span class="ident">get_result</span></span>(<span>self, product=False)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Get the susceptibility estimation and ranks.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>product</code></strong> :&ensp;<code>bool</code>, optional</dt>
+<dd>If true: the final susceptibility is calculated as the product
+of the susceptibility grids of the folds.
+If false: the final susceptibility is calculated as the average
+of the susceptibility grids of the folds.
+Default is false.</dd>
+</dl>
 <h2 id="returns">Returns</h2>
 <dl>
 <dt><code>self.ranks : ndarray</code></dt>
@@ -1904,71 +1949,89 @@ Keywords passed to show_grid.</p>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def get_result(self):
-    &#34;&#34;&#34;
-    Get the susceptibility estimation and ranks.
-
-    Returns
-    -------
-    self.ranks : ndarray
-        Numpy array (101,) with the percentile bins.
-
-    &#34;&#34;&#34;
-    rc_folds = self.rc_folds
-    valid_positions = self.ls_mask.valid_positions
-    result = []
-    # TODO remove percentile_result if really not used
-    percentile_result = []
-    # percentile bins
-    percentile_bins = [x * 0.01 for x in range(0, 101)]
-    # Iterate over the folds of the ls_mask.
-    for i in range(0, self.ls_mask.fold_count):
-        fold_result = np.zeros(rc_folds[0][0].shape)
+<pre><code class="python">    def get_result(self, product=False):
+        &#34;&#34;&#34;
+        Get the susceptibility estimation and ranks.
         
-        # Iterate over the reclassified grids of fold #i
-        for j in rc_folds:
-            # Average the reclassified  grids of fold #i.
-            fold_result += j[i] / self.var_count
+        Parameters
+        ----------
+        product : bool, optional
+            If true: the final susceptibility is calculated as the product
+            of the susceptibility grids of the folds.
+            If false: the final susceptibility is calculated as the average
+            of the susceptibility grids of the folds.
+            Default is false.
 
-        # Percentile bin edges for conversion to percentiles
-        valid_perc = np.quantile(fold_result[fold_result &gt;= 0],
-                                 percentile_bins,
-                                 interpolation=&#39;nearest&#39;)
+        Returns
+        -------
+        self.ranks : ndarray
+            Numpy array (101,) with the percentile bins.
 
-        self.valid_perc.append(valid_perc)
-        v_to_score = fold_result[valid_positions[i]]
-        v_dist, v_bins = np.histogram(v_to_score,
-                                      valid_perc,
-                                      density=False)
+        &#34;&#34;&#34;
+        rc_folds = self.rc_folds
+        valid_positions = self.ls_mask.valid_positions
+        result = []
+        # TODO remove percentile_result if really not used
+        percentile_result = []
+        # percentile bins
+        percentile_bins = [x * 0.01 for x in range(0, 101)]
+        # Iterate over the folds of the ls_mask.
+        for i in range(0, self.ls_mask.fold_count):
+            if product:
+                fold_result = np.ones(rc_folds[0][0].shape)
+            else:
+                fold_result = np.zeros(rc_folds[0][0].shape)
 
-        v_dist = np.array(v_dist)
-        v_dist = v_dist / sum(v_dist)
-        # Append the probability density function to vdist
-        self.v_dist.append(v_dist)
-        self.v_bins.append(v_bins)
-        result.append(fold_result)
+            # Iterate over the reclassified grids of fold #i
+            for j in rc_folds:
+                if product:
+                    fold_result *= j[i]
+                else:
+                    # Average the reclassified  grids of fold #i.
+                    fold_result += j[i] / self.var_count
 
-    # fresult: cell by cell average of the result array
-    fresult = sum(result) / self.ls_mask.fold_count
+            # Percentile bin edges for conversion to percentiles
+            valid_perc = np.quantile(fold_result[fold_result &gt;= 0],
+                                     percentile_bins,
+                                     interpolation=&#39;nearest&#39;)
+# TODO 
+# Users of the modes &#39;nearest&#39;, &#39;lower&#39;, &#39;higher&#39;, or &#39;midpoint&#39;
+# are encouraged to review the method they used. (Deprecated NumPy 1.22)
 
-    # Assign the results from the validation folds to the location
-    # of the landslide mask and create the percentile grids for the folds
-    for i in range(0, self.ls_mask.fold_count):
-        fresult[valid_positions[i]] = result[i][valid_positions[i]]
-        result[i][result[i] &lt; 0] = -99999
-        fp = reclass_raster(result[i],
-                            percentile_bins[1:],
-                            self.valid_perc[i])
-        fp[fp &gt; 0] = fp[fp &gt; 0] * 100
-        self.fold_percentiles.append(fp)
+            self.valid_perc.append(valid_perc)
+            v_to_score = fold_result[valid_positions[i]]
+            v_dist, v_bins = np.histogram(v_to_score,
+                                          valid_perc,
+                                          density=False)
 
-    # Set all invalid values (&lt;0) to -99999 (nodata)
-    fresult[fresult &lt; 0] = -99999
+            v_dist = np.array(v_dist)
+            v_dist = v_dist / sum(v_dist)
+            # Append the probability density function to vdist
+            self.v_dist.append(v_dist)
+            self.v_bins.append(v_bins)
+            result.append(fold_result)
 
-    self.fold_susceptibility = result
-    self.fresult = fresult
-    self.ranks = np.quantile(fresult[fresult &gt; 0], percentile_bins)
-    return self.ranks</code></pre>
+        # fresult: cell by cell average of the result array
+        fresult = sum(result) / self.ls_mask.fold_count
+
+        # Assign the results from the validation folds to the location
+        # of the landslide mask and create the percentile grids for the folds
+        for i in range(0, self.ls_mask.fold_count):
+            fresult[valid_positions[i]] = result[i][valid_positions[i]]
+            result[i][result[i] &lt; 0] = -99999
+            fp = reclass_raster(result[i],
+                                percentile_bins[1:],
+                                self.valid_perc[i])
+            fp[fp &gt;= 0] = fp[fp &gt;= 0] * 100
+            self.fold_percentiles.append(fp)
+
+        # Set all invalid values (&lt;0) to -99999 (nodata)
+        fresult[fresult &lt; 0] = -99999
+
+        self.fold_susceptibility = result
+        self.fresult = fresult
+        self.ranks = np.quantile(fresult[fresult &gt;= 0], percentile_bins)
+        return self.ranks</code></pre>
 </details>
 </dd>
 <dt id="frmod.analysis.FRAnalysis.get_src"><code class="name flex">
