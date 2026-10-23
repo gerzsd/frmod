@@ -6,6 +6,9 @@ The tests use small synthetic grids instead of raster files: the functions
 that read files in frmod.utils are replaced in setUp.
 """
 
+import os
+import pathlib
+import tempfile
 import unittest
 from unittest import mock
 
@@ -119,6 +122,125 @@ class TestFRAnalysis(unittest.TestCase):
         # Every cell of the study area has a reclassified value and a percentile.
         self.assertTrue(np.all(fra.percentile_grid[~outside] >= 1))
         self.assertTrue(np.all(fra.rc_folds[0][0][~outside] >= 0))
+
+
+class TestRaster2ArraySaga(unittest.TestCase):
+
+    DATA_TYPES = {
+        'BYTE': np.int8,
+        'BYTE_UNSIGNED': np.uint8,
+        'SHORTINT': np.int16,
+        'SHORTINT_UNSIGNED': np.uint16,
+        'INTEGER': np.int32,
+        'INTEGER_UNSIGNED': np.uint32,
+        'FLOAT': np.float32,
+        'DOUBLE': np.float64,
+    }
+    SAMPLE_FILES = ['SRTM31_EG_GF_m', 'SRTM31_EG_GF_Slope_m',
+                    'fdt100_14k', 'scarps']
+
+    def setUp(self):
+        folder = tempfile.TemporaryDirectory()
+        self.addCleanup(folder.cleanup)
+        self.folder = folder.name
+
+    def sample_path(self, name):
+        here = os.path.dirname(os.path.abspath(__file__))
+        return os.path.join(here, '..', 'data', name + '.sdat')
+
+    def write_grid(self, grid, data_format, name='grid', big_endian=False,
+                   top_to_bottom=False, offset=0):
+        """Write grid (first row = top row) as a SAGA grid, return its path."""
+        dtype = np.dtype(self.DATA_TYPES[data_format])
+        if dtype.itemsize > 1:
+            dtype = dtype.newbyteorder('>' if big_endian else '<')
+        # SAGA grids are stored from the bottom row up, unless TOPTOBOTTOM.
+        stored = grid if top_to_bottom else grid[::-1]
+        path = os.path.join(self.folder, name)
+        with open(path + '.sdat', 'wb') as data_file:
+            data_file.write(b'\0' * offset)
+            data_file.write(stored.astype(dtype).tobytes())
+        header = ['DATAFORMAT\t= ' + data_format,
+                  'DATAFILE_OFFSET\t= ' + str(offset),
+                  'BYTEORDER_BIG\t= ' + str(big_endian).upper(),
+                  'TOPTOBOTTOM\t= ' + str(top_to_bottom).upper(),
+                  'CELLCOUNT_X\t= ' + str(grid.shape[1]),
+                  'CELLCOUNT_Y\t= ' + str(grid.shape[0])]
+        with open(path + '.sgrd', 'w') as header_file:
+            header_file.write('\n'.join(header) + '\n')
+        return path
+
+    def test_all_formats_byte_orders_and_row_orders(self):
+        for data_format, np_type in self.DATA_TYPES.items():
+            signed = not np.issubdtype(np_type, np.unsignedinteger)
+            grid = (np.arange(12).reshape(3, 4) - (5 if signed else 0))
+            grid = grid.astype(np_type)
+            for big_endian in (False, True):
+                for top_to_bottom in (False, True):
+                    for offset in (0, 7):
+                        with self.subTest(data_format=data_format,
+                                          big_endian=big_endian,
+                                          top_to_bottom=top_to_bottom,
+                                          offset=offset):
+                            path = self.write_grid(
+                                grid, data_format, big_endian=big_endian,
+                                top_to_bottom=top_to_bottom, offset=offset)
+                            result = utils.raster2array_saga(path + '.sdat')
+                            np.testing.assert_array_equal(result, grid)
+                            self.assertEqual(result.dtype, grid.dtype)
+
+    def test_header_and_data_file_paths_both_work(self):
+        grid = np.arange(12, dtype=np.float32).reshape(3, 4)
+        path = self.write_grid(grid, 'FLOAT')
+        for given_path in (path + '.sgrd', path + '.sdat',
+                           pathlib.Path(path + '.sdat')):
+            np.testing.assert_array_equal(
+                utils.raster2array_saga(given_path), grid)
+
+    def test_nodata_values_and_header_scaling_are_left_unchanged(self):
+        grid = np.array([[-99999., 1.], [2., 3.]], dtype=np.float32)
+        path = self.write_grid(grid, 'FLOAT')
+        with open(path + '.sgrd', 'a') as header_file:
+            header_file.write('Z_FACTOR\t= 2.0\nZ_OFFSET\t= 10.0\n')
+        np.testing.assert_array_equal(
+            utils.raster2array_saga(path + '.sdat'), grid)
+
+    def test_wrong_input_is_reported(self):
+        grid = np.arange(12, dtype=np.float32).reshape(3, 4)
+        path = self.write_grid(grid, 'FLOAT')
+        with self.assertRaises(ValueError):  # Not a SAGA file.
+            utils.raster2array_saga(path + '.tif')
+        with open(path + '.sdat', 'r+b') as data_file:
+            data_file.truncate(20)
+        with self.assertRaises(ValueError):  # Smaller than the header says.
+            utils.raster2array_saga(path + '.sdat')
+        bad_header = self.write_grid(grid, 'FLOAT', name='bad_header')
+        with open(bad_header + '.sgrd', 'w') as header_file:
+            header_file.write('DATAFORMAT\t= COLOR\nCELLCOUNT_X\t= 4\n'
+                              'CELLCOUNT_Y\t= 3\n')
+        with self.assertRaises(ValueError):  # Unsupported data format.
+            utils.raster2array_saga(bad_header + '.sdat')
+
+    def test_sample_data(self):
+        elevation = utils.raster2array_saga(self.sample_path('SRTM31_EG_GF_m'))
+        self.assertEqual(elevation.shape, (475, 1064))
+        self.assertEqual(elevation.dtype, np.float32)
+        self.assertAlmostEqual(elevation[elevation != -99999].min(),
+                               100.67122, places=4)
+        geology = utils.raster2array_saga(self.sample_path('fdt100_14k'))
+        self.assertEqual(geology.dtype, np.uint8)
+        self.assertEqual(geology.max(), 14)
+
+    def test_matches_the_gdal_reader(self):
+        # Compares the two readers on the sample data, including the row
+        # order. This is the check that needs a real GDAL installation.
+        for name in self.SAMPLE_FILES:
+            with self.subTest(name=name):
+                path = self.sample_path(name)
+                with_gdal = utils.raster2array(path)
+                without_gdal = utils.raster2array_saga(path)
+                np.testing.assert_array_equal(without_gdal, with_gdal)
+                self.assertEqual(without_gdal.dtype, with_gdal.dtype)
 
 
 if __name__ == '__main__':
