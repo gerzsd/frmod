@@ -65,7 +65,7 @@ def get_freq_ratios_classic(vr,
     ls_area = np.count_nonzero(mask == ls_marker)
     all_area = np.count_nonzero(mask == nls_marker) + ls_area
     if categorical:
-        bin_edges = np.unique(vr[in_all])
+        bin_edges = np.unique(vr[in_all].compressed())
         bin_edges = np.append(bin_edges, bin_edges[-1] + 1)
         ls_hst = np.histogram(vr[mask == ls_marker],
                               bins=bin_edges,
@@ -149,7 +149,7 @@ def get_freq_ratios(vr,
     ls_area = np.count_nonzero(mask == ls_marker)
     nls_area = np.count_nonzero(mask == nls_marker)
     if categorical:
-        bin_edges = np.unique(vr[(vr != nodata)])
+        bin_edges = np.unique(vr[(vr != nodata)].compressed())
         bin_edges = np.append(bin_edges, bin_edges[-1] + 1)
         ls_hst = np.histogram(vr[mask == ls_marker],
                               bins=bin_edges,
@@ -190,8 +190,6 @@ def get_freq_ratios(vr,
     return frequency_ratios, hst_bins, fr_stat_df
 
 
-# TODO: a name change is due to reclass_array
-# TODO Use more generic variable names. This can reclass any array.
 def reclass_raster(vr, f_ratios, bin_edges, verbose=False,
                    categorical=False, nodata=None):
     """
