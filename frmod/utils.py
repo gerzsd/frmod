@@ -10,13 +10,29 @@ https://pcjericks.github.io/py-gdalogr-cookbook/
 import os
 
 import numpy as np
-import osgeo.gdal as gdal
-import osgeo.osr as osr
+
+
+def _import_gdal():
+    """Return the osgeo.gdal module, or None if GDAL is not installed."""
+    try:
+        import osgeo.gdal as gdal
+    except ImportError:
+        return None
+    return gdal
+
+
+def _is_saga_file(rasterfn):
+    """Return True if the path has a SAGA grid extension (.sdat or .sgrd)."""
+    extension = os.path.splitext(os.fspath(rasterfn))[1].lower()
+    return extension in ('.sdat', '.sgrd')
 
 
 def raster2array(rasterfn):
     """
     Raster to array.
+
+    GDAL reads the raster. If GDAL is not installed, SAGA grids (.sdat) are
+    read with raster2array_saga instead.
 
     Parameters
     ----------
@@ -31,6 +47,12 @@ def raster2array(rasterfn):
         The nodata values of the input raster are masked.
 
     """
+    gdal = _import_gdal()
+    if gdal is None:
+        if _is_saga_file(rasterfn):
+            return raster2array_saga(rasterfn)
+        raise ImportError("GDAL is not installed. Without GDAL, only SAGA "
+                          "grids (.sdat) can be read.")
     raster = gdal.Open(rasterfn)
     band = raster.GetRasterBand(1)
     band_as_array = band.ReadAsArray()
@@ -158,6 +180,11 @@ def array2raster(rasterfn, new_raster_fn, array, driver='SAGA'):
     None.
 
     """
+    gdal = _import_gdal()
+    if gdal is None:
+        raise ImportError("GDAL is needed to write raster files.")
+    import osgeo.osr as osr
+
     raster = gdal.Open(rasterfn)
     geotransform = raster.GetGeoTransform()
     origin_x = geotransform[0]
@@ -205,6 +232,9 @@ def get_nodata_value(rasterfn):
     """
     Fetch the nodata value of the input file.
 
+    GDAL reads the nodata value. If GDAL is not installed, the nodata value
+    of SAGA grids (.sdat) is read with get_nodata_value_saga instead.
+
     Parameters
     ----------
     rasterfn : str
@@ -216,9 +246,46 @@ def get_nodata_value(rasterfn):
         The nodata value of the input file.
 
     """
+    gdal = _import_gdal()
+    if gdal is None:
+        if _is_saga_file(rasterfn):
+            return get_nodata_value_saga(rasterfn)
+        raise ImportError("GDAL is not installed. Without GDAL, only SAGA "
+                          "grids (.sdat) can be read.")
     raster = gdal.Open(rasterfn)
     band = raster.GetRasterBand(1)
     return band.GetNoDataValue()
+
+
+def get_nodata_value_saga(rasterfn):
+    """
+    Fetch the nodata value of a SAGA grid from its .sgrd header without GDAL.
+
+    The header stores a nodata range, eg. "-99999.0;-99999.0". The first
+    value is returned, like GDAL does.
+
+    Parameters
+    ----------
+    rasterfn : str
+        Path to a SAGA .sgrd header or .sdat data file.
+
+    Returns
+    -------
+    float or None
+        The nodata value, None if the header does not have one.
+
+    """
+    rasterfn = os.fspath(rasterfn)
+    if not _is_saga_file(rasterfn):
+        raise ValueError("Expected a SAGA .sgrd or .sdat file.")
+    headerfn = os.path.splitext(rasterfn)[0] + '.sgrd'
+
+    with open(headerfn, encoding='utf-8-sig') as header_file:
+        for line in header_file:
+            key, separator, value = line.partition('=')
+            if separator and key.strip().upper() == 'NODATA_VALUE':
+                return float(value.split(';')[0])
+    return None
 
 
 def get_output_path(fname, tag='_reclass'):

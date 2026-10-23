@@ -20,6 +20,12 @@ from frmod.analysis import FRAnalysis, LandslideMask, VRaster, reclass_raster
 NODATA = -99999.
 
 
+def sample_path(name):
+    """Path of a sample grid (.sdat) in the data folder."""
+    here = os.path.dirname(os.path.abspath(__file__))
+    return os.path.join(here, '..', 'data', name + '.sdat')
+
+
 class TestReclassRaster(unittest.TestCase):
 
     def test_last_bin_includes_upper_edge(self):
@@ -144,10 +150,6 @@ class TestRaster2ArraySaga(unittest.TestCase):
         self.addCleanup(folder.cleanup)
         self.folder = folder.name
 
-    def sample_path(self, name):
-        here = os.path.dirname(os.path.abspath(__file__))
-        return os.path.join(here, '..', 'data', name + '.sdat')
-
     def write_grid(self, grid, data_format, name='grid', big_endian=False,
                    top_to_bottom=False, offset=0):
         """Write grid (first row = top row) as a SAGA grid, return its path."""
@@ -222,25 +224,85 @@ class TestRaster2ArraySaga(unittest.TestCase):
             utils.raster2array_saga(bad_header + '.sdat')
 
     def test_sample_data(self):
-        elevation = utils.raster2array_saga(self.sample_path('SRTM31_EG_GF_m'))
+        elevation = utils.raster2array_saga(sample_path('SRTM31_EG_GF_m'))
         self.assertEqual(elevation.shape, (475, 1064))
         self.assertEqual(elevation.dtype, np.float32)
         self.assertAlmostEqual(elevation[elevation != -99999].min(),
                                100.67122, places=4)
-        geology = utils.raster2array_saga(self.sample_path('fdt100_14k'))
+        geology = utils.raster2array_saga(sample_path('fdt100_14k'))
         self.assertEqual(geology.dtype, np.uint8)
         self.assertEqual(geology.max(), 14)
 
     def test_matches_the_gdal_reader(self):
         # Compares the two readers on the sample data, including the row
         # order. This is the check that needs a real GDAL installation.
+        if utils._import_gdal() is None:
+            self.skipTest("GDAL is not installed.")
         for name in self.SAMPLE_FILES:
             with self.subTest(name=name):
-                path = self.sample_path(name)
+                path = sample_path(name)
                 with_gdal = utils.raster2array(path)
                 without_gdal = utils.raster2array_saga(path)
                 np.testing.assert_array_equal(without_gdal, with_gdal)
                 self.assertEqual(without_gdal.dtype, with_gdal.dtype)
+
+
+class TestWithoutGdal(unittest.TestCase):
+    """SAGA grids can be used when GDAL is not installed."""
+
+    def setUp(self):
+        patch = mock.patch.object(utils, '_import_gdal', return_value=None)
+        patch.start()
+        self.addCleanup(patch.stop)
+
+    def test_saga_grids_are_read_with_the_saga_reader(self):
+        path = sample_path('scarps')
+        grid = utils.raster2array(path)
+        np.testing.assert_array_equal(grid, utils.raster2array_saga(path))
+        self.assertEqual(grid.shape, (475, 1064))
+
+    def test_nodata_value_is_read_from_the_header(self):
+        for name, nodata in (('scarps', -99999.), ('SRTM31_EG_GF_m', -99999.),
+                             ('fdt100_14k', 0.)):
+            with self.subTest(name=name):
+                path = sample_path(name)
+                self.assertEqual(utils.get_nodata_value(path), nodata)
+                self.assertEqual(utils.get_nodata_value_saga(path), nodata)
+                # The header path works too.
+                self.assertEqual(
+                    utils.get_nodata_value_saga(path[:-5] + '.sgrd'), nodata)
+
+    def test_header_without_nodata_value_gives_none(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path = os.path.join(folder, 'grid.sgrd')
+            with open(path, 'w') as header_file:
+                header_file.write('DATAFORMAT\t= FLOAT\n')
+            self.assertIsNone(utils.get_nodata_value_saga(path))
+
+    def test_other_formats_need_gdal(self):
+        with self.assertRaises(ImportError):
+            utils.raster2array('grid.tif')
+        with self.assertRaises(ImportError):
+            utils.get_nodata_value('grid.tif')
+        with self.assertRaises(ImportError):
+            utils.array2raster('grid.sdat', 'out.tif', np.zeros((2, 2)))
+
+    def test_analysis_runs_on_the_sample_data(self):
+        # The demo analysis of the notebook: mean AUC 19.0679 with this seed.
+        np.random.seed(2021)
+        elevation = VRaster('elevation', sample_path('SRTM31_EG_GF_m'),
+                            bins=50)
+        slope = VRaster('slope', sample_path('SRTM31_EG_GF_Slope_m'), bins=20)
+        geology = VRaster('geology_14', sample_path('fdt100_14k'),
+                          categorical=True)
+        scarps = LandslideMask('scarps', sample_path('scarps'),
+                               ls_marker=1, fold_count=5)
+        fra = FRAnalysis(scarps, [slope, geology, elevation])
+        fra.get_result()
+        fra.get_src()
+        with mock.patch('builtins.print'):  # get_auc prints the scores.
+            fra.get_auc()
+        self.assertAlmostEqual(fra.auc_mean, 19.0679, places=3)
 
 
 if __name__ == '__main__':
