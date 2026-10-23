@@ -4,6 +4,8 @@ Input and output utilities for handling raster files.
 Based mainly on code snippets from the Python GDAL/OGR Cookbook 1.0
 https://pcjericks.github.io/py-gdalogr-cookbook/
 
+GDAL is optional. SAGA grids can be read and written without it.
+
 @author: Dávid Gerzsenyi
 """
 
@@ -25,6 +27,12 @@ _SAGA_DATA_TYPES = {
     'DOUBLE': np.float64,
 }
 
+# The header values that define the grid system of a SAGA grid.
+_SAGA_GRID_SYSTEM_KEYS = ('CELLCOUNT_X', 'CELLCOUNT_Y',
+                          'POSITION_XMIN', 'POSITION_YMIN', 'CELLSIZE')
+
+
+# GDAL or not GDAL ----------------------------------------------------------
 
 def _import_gdal():
     """Return the osgeo.gdal module, or None if GDAL is not installed."""
@@ -35,11 +43,24 @@ def _import_gdal():
     return gdal
 
 
+def _extension(rasterfn):
+    """Return the lower case file extension of a path, eg. '.sdat'."""
+    return os.path.splitext(os.fspath(rasterfn))[1].lower()
+
+
 def _is_saga_file(rasterfn):
     """Return True if the path has a SAGA grid extension (.sdat or .sgrd)."""
-    extension = os.path.splitext(os.fspath(rasterfn))[1].lower()
-    return extension in ('.sdat', '.sgrd')
+    return _extension(rasterfn) in ('.sdat', '.sgrd')
 
+
+def _check_readable_without_gdal(rasterfn):
+    """Raise an ImportError if the file can only be read with GDAL."""
+    if not _is_saga_file(rasterfn):
+        raise ImportError("GDAL is not installed. Without GDAL, only SAGA "
+                          "grids (.sdat) can be read.")
+
+
+# SAGA grids: the header, shared by reading and writing ----------------------
 
 def _read_saga_header(rasterfn):
     """
@@ -56,6 +77,8 @@ def _read_saga_header(rasterfn):
         The header lines as {KEY: value}. The keys are upper case.
 
     """
+    if not _is_saga_file(rasterfn):
+        raise ValueError("Expected a SAGA .sgrd or .sdat file.")
     headerfn = os.path.splitext(os.fspath(rasterfn))[0] + '.sgrd'
     header = {}
     with open(headerfn, encoding='utf-8-sig', errors='replace') as header_file:
@@ -65,6 +88,26 @@ def _read_saga_header(rasterfn):
                 header[key.strip().upper()] = value.strip()
     return header
 
+
+def _check_saga_header_keys(header, required_keys):
+    """Raise a ValueError if the header misses any of the required keys."""
+    missing = [key for key in required_keys if key not in header]
+    if missing:
+        raise ValueError(
+            "Missing required SAGA grid metadata: {}".format(
+                ', '.join(missing)))
+
+
+def _saga_shape(header):
+    """Return the shape of the grid (rows, columns) from the header."""
+    cols = int(header['CELLCOUNT_X'])
+    rows = int(header['CELLCOUNT_Y'])
+    if cols <= 0 or rows <= 0:
+        raise ValueError("SAGA grid dimensions must be positive.")
+    return rows, cols
+
+
+# Reading a raster ------------------------------------------------------------
 
 def raster2array(rasterfn):
     """
@@ -88,14 +131,64 @@ def raster2array(rasterfn):
     """
     gdal = _import_gdal()
     if gdal is None:
-        if _is_saga_file(rasterfn):
-            return raster2array_saga(rasterfn)
-        raise ImportError("GDAL is not installed. Without GDAL, only SAGA "
-                          "grids (.sdat) can be read.")
+        _check_readable_without_gdal(rasterfn)
+        return raster2array_saga(rasterfn)
     raster = gdal.Open(rasterfn)
     band = raster.GetRasterBand(1)
     band_as_array = band.ReadAsArray()
     return band_as_array
+
+
+def _saga_dtype(header):
+    """Return the numpy dtype of the data file, with its byte order."""
+    data_format = header['DATAFORMAT'].upper()
+    if data_format not in _SAGA_DATA_TYPES:
+        raise ValueError(
+            "Unsupported SAGA grid data format: {}".format(data_format))
+    dtype = np.dtype(_SAGA_DATA_TYPES[data_format])
+    if dtype.itemsize > 1:
+        byteorder_big = header.get('BYTEORDER_BIG', 'FALSE').upper() == 'TRUE'
+        dtype = dtype.newbyteorder('>' if byteorder_big else '<')
+    return dtype
+
+
+def _saga_data_offset(header):
+    """Return the number of bytes to skip at the start of the data file."""
+    offset = int(header.get('DATAFILE_OFFSET', '0'))
+    if offset < 0:
+        raise ValueError("SAGA grid data offset must not be negative.")
+    return offset
+
+
+def _saga_data_path(rasterfn, header):
+    """Return the path of the .sdat data file of a SAGA grid."""
+    if _extension(rasterfn) == '.sdat':
+        return os.fspath(rasterfn)
+    datafile = header.get('DATAFILE')
+    if datafile:
+        folder = os.path.dirname(os.fspath(rasterfn))
+        return os.path.join(folder, datafile.strip('"\''))
+    return os.path.splitext(os.fspath(rasterfn))[0] + '.sdat'
+
+
+def _read_saga_values(datafn, dtype, shape, offset):
+    """Read the values of the data file into an array of the given shape."""
+    value_count = shape[0] * shape[1]
+    values = np.fromfile(datafn, dtype=dtype, count=value_count,
+                         offset=offset)
+    if values.size != value_count:
+        raise ValueError(
+            "SAGA data file is too small for the dimensions in its header.")
+    values = values.astype(dtype.newbyteorder('='), copy=False)
+    return values.reshape(shape)
+
+
+def _rows_top_down(grid, header):
+    """Order the rows from top to bottom. SAGA grids usually start at the
+    bottom row, only the ones with TOPTOBOTTOM = TRUE start at the top."""
+    if header.get('TOPTOBOTTOM', 'FALSE').upper() == 'TRUE':
+        return grid
+    return np.flipud(grid).copy()
 
 
 def raster2array_saga(rasterfn):
@@ -117,75 +210,19 @@ def raster2array_saga(rasterfn):
         The grid as a 2D array, ordered from top to bottom.
 
     """
-    rasterfn = os.fspath(rasterfn)
-    extension = os.path.splitext(rasterfn)[1].lower()
+    header = _read_saga_header(rasterfn)
+    _check_saga_header_keys(
+        header, ('DATAFORMAT', 'CELLCOUNT_X', 'CELLCOUNT_Y'))
+    dtype = _saga_dtype(header)
+    shape = _saga_shape(header)
+    offset = _saga_data_offset(header)
+    datafn = _saga_data_path(rasterfn, header)
 
-    if extension == '.sgrd':
-        headerfn = rasterfn
-        datafn = None
-    elif extension == '.sdat':
-        headerfn = os.path.splitext(rasterfn)[0] + '.sgrd'
-        datafn = rasterfn
-    else:
-        raise ValueError("Expected a SAGA .sgrd or .sdat file.")
+    band_as_array = _read_saga_values(datafn, dtype, shape, offset)
+    return _rows_top_down(band_as_array, header)
 
-    header = {}
-    with open(headerfn, encoding='utf-8-sig') as header_file:
-        for line in header_file:
-            if '=' in line:
-                key, value = line.split('=', 1)
-                header[key.strip().upper()] = value.strip()
 
-    required = ('DATAFORMAT', 'CELLCOUNT_X', 'CELLCOUNT_Y')
-    missing = [key for key in required if key not in header]
-    if missing:
-        raise ValueError(
-            "Missing required SAGA grid metadata: {}".format(
-                ', '.join(missing)))
-
-    data_format = header['DATAFORMAT'].upper()
-    data_types = _SAGA_DATA_TYPES
-    if data_format not in data_types:
-        raise ValueError(
-            "Unsupported SAGA grid data format: {}".format(data_format))
-
-    cols = int(header['CELLCOUNT_X'])
-    rows = int(header['CELLCOUNT_Y'])
-    if cols <= 0 or rows <= 0:
-        raise ValueError("SAGA grid dimensions must be positive.")
-
-    offset = int(header.get('DATAFILE_OFFSET', '0'))
-    if offset < 0:
-        raise ValueError("SAGA grid data offset must not be negative.")
-
-    if datafn is None:
-        datafile = header.get('DATAFILE')
-        if datafile:
-            datafile = datafile.strip('"\'')
-            datafn = os.path.join(os.path.dirname(headerfn), datafile)
-        else:
-            datafn = os.path.splitext(headerfn)[0] + '.sdat'
-
-    dtype = np.dtype(data_types[data_format])
-    if dtype.itemsize > 1:
-        byteorder_big = header.get('BYTEORDER_BIG', 'FALSE').upper() == 'TRUE'
-        dtype = dtype.newbyteorder('>' if byteorder_big else '<')
-
-    value_count = rows * cols
-    band_as_array = np.fromfile(
-        datafn, dtype=dtype, count=value_count, offset=offset)
-    if band_as_array.size != value_count:
-        raise ValueError(
-            "SAGA data file is too small for the dimensions in its header.")
-
-    band_as_array = band_as_array.astype(dtype.newbyteorder('='), copy=False)
-    band_as_array = band_as_array.reshape((rows, cols))
-
-    if header.get('TOPTOBOTTOM', 'FALSE').upper() != 'TRUE':
-        band_as_array = np.flipud(band_as_array).copy()
-
-    return band_as_array
-
+# Writing a raster ------------------------------------------------------------
 
 def array2raster(rasterfn, new_raster_fn, array, driver='SAGA'):
     """
@@ -238,6 +275,77 @@ def array2raster(rasterfn, new_raster_fn, array, driver='SAGA'):
     outband.FlushCache()
 
 
+def _as_saga_array(array, shape):
+    """Return the array in a form that can be saved as a SAGA grid.
+
+    The array must have the given shape. Boolean values become 0 and 1."""
+    array = np.asarray(array)
+    if array.dtype == bool:
+        array = array.astype(np.uint8)
+    if array.shape != shape:
+        raise ValueError("The shape of the array {} does not match the "
+                         "sample grid {}.".format(array.shape, shape))
+    return array
+
+
+def _saga_data_format(dtype):
+    """Return the DATAFORMAT value of the SAGA grid that stores the dtype."""
+    data_formats = {np.dtype(np_type): name
+                    for name, np_type in _SAGA_DATA_TYPES.items()}
+    dtype = dtype.newbyteorder('=')
+    if dtype not in data_formats:
+        raise ValueError(
+            "Unsupported array type: {}. Supported types: {}.".format(
+                dtype, ', '.join(str(t) for t in data_formats)))
+    return data_formats[dtype]
+
+
+def _write_saga_values(array, datafn):
+    """Write the array to the data file: little-endian, bottom row first."""
+    values = np.ascontiguousarray(np.flipud(array),
+                                  dtype=array.dtype.newbyteorder('<'))
+    values.tofile(datafn)
+
+
+def _new_saga_header(name, data_format, sample_header, nodata):
+    """Return the header lines [(key, value), ...] of a new SAGA grid.
+
+    The grid system (position, size, cell size) is the one of the sample."""
+    return [
+        ('NAME', name),
+        ('DESCRIPTION', ''),
+        ('UNIT', ''),
+        ('DATAFORMAT', data_format),
+        ('DATAFILE_OFFSET', '0'),
+        ('BYTEORDER_BIG', 'FALSE'),
+        ('TOPTOBOTTOM', 'FALSE'),
+        ('POSITION_XMIN', sample_header['POSITION_XMIN']),
+        ('POSITION_YMIN', sample_header['POSITION_YMIN']),
+        ('CELLCOUNT_X', sample_header['CELLCOUNT_X']),
+        ('CELLCOUNT_Y', sample_header['CELLCOUNT_Y']),
+        ('CELLSIZE', sample_header['CELLSIZE']),
+        ('Z_FACTOR', '1.000000'),
+        ('Z_OFFSET', '0.000000'),
+        ('NODATA_VALUE', '{0!r};{0!r}'.format(float(nodata))),
+    ]
+
+
+def _write_saga_header(headerfn, header_lines):
+    """Write the header lines [(key, value), ...] to the .sgrd file."""
+    with open(headerfn, 'w', encoding='utf-8') as header_file:
+        for key, value in header_lines:
+            header_file.write('{}\t= {}\n'.format(key, value))
+
+
+def _copy_saga_projection(sample_rasterfn, new_base):
+    """Copy the .prj file of the sample grid, if it has one."""
+    sample_prj = os.path.splitext(os.fspath(sample_rasterfn))[0] + '.prj'
+    new_prj = new_base + '.prj'
+    if (os.path.isfile(sample_prj)
+            and os.path.abspath(sample_prj) != os.path.abspath(new_prj)):
+        shutil.copyfile(sample_prj, new_prj)
+
+
 def array2raster_saga(rasterfn, new_raster_fn, array, nodata=-99999.):
     """
     Write an array to a SAGA grid without GDAL.
@@ -274,72 +382,22 @@ def array2raster_saga(rasterfn, new_raster_fn, array, nodata=-99999.):
     None.
 
     """
-    if not (_is_saga_file(rasterfn) and _is_saga_file(new_raster_fn)):
-        raise ValueError("Expected SAGA .sgrd or .sdat files.")
-
-    # Grid system of the sample grid: size, position, cell size.
-    sample = _read_saga_header(rasterfn)
-    required = ('CELLCOUNT_X', 'CELLCOUNT_Y', 'POSITION_XMIN',
-                'POSITION_YMIN', 'CELLSIZE')
-    missing = [key for key in required if key not in sample]
-    if missing:
-        raise ValueError(
-            "Missing required SAGA grid metadata: {}".format(
-                ', '.join(missing)))
-
-    array = np.asarray(array)
-    if array.dtype == bool:
-        array = array.astype(np.uint8)
-    sample_shape = (int(sample['CELLCOUNT_Y']), int(sample['CELLCOUNT_X']))
-    if array.shape != sample_shape:
-        raise ValueError("The shape of the array {} does not match the "
-                         "sample grid {}.".format(array.shape, sample_shape))
-
-    # Data type: DATAFORMAT value belonging to the numpy type of the array.
-    data_formats = {np.dtype(np_type): name
-                    for name, np_type in _SAGA_DATA_TYPES.items()}
-    dtype = array.dtype.newbyteorder('=')
-    if dtype not in data_formats:
-        raise ValueError(
-            "Unsupported array type: {}. Supported types: {}.".format(
-                array.dtype, ', '.join(str(t) for t in data_formats)))
+    if not _is_saga_file(new_raster_fn):
+        raise ValueError("Expected a SAGA .sgrd or .sdat file.")
+    sample_header = _read_saga_header(rasterfn)
+    _check_saga_header_keys(sample_header, _SAGA_GRID_SYSTEM_KEYS)
+    array = _as_saga_array(array, _saga_shape(sample_header))
+    data_format = _saga_data_format(array.dtype)
 
     new_base = os.path.splitext(os.fspath(new_raster_fn))[0]
+    header = _new_saga_header(os.path.basename(new_base), data_format,
+                              sample_header, nodata)
+    _write_saga_values(array, new_base + '.sdat')
+    _write_saga_header(new_base + '.sgrd', header)
+    _copy_saga_projection(rasterfn, new_base)
 
-    # Data file: little-endian values, rows from the bottom up.
-    data = np.ascontiguousarray(np.flipud(array),
-                                dtype=dtype.newbyteorder('<'))
-    data.tofile(new_base + '.sdat')
 
-    # Header file.
-    header = [
-        ('NAME', os.path.basename(new_base)),
-        ('DESCRIPTION', ''),
-        ('UNIT', ''),
-        ('DATAFORMAT', data_formats[dtype]),
-        ('DATAFILE_OFFSET', '0'),
-        ('BYTEORDER_BIG', 'FALSE'),
-        ('TOPTOBOTTOM', 'FALSE'),
-        ('POSITION_XMIN', sample['POSITION_XMIN']),
-        ('POSITION_YMIN', sample['POSITION_YMIN']),
-        ('CELLCOUNT_X', sample['CELLCOUNT_X']),
-        ('CELLCOUNT_Y', sample['CELLCOUNT_Y']),
-        ('CELLSIZE', sample['CELLSIZE']),
-        ('Z_FACTOR', '1.000000'),
-        ('Z_OFFSET', '0.000000'),
-        ('NODATA_VALUE', '{0!r};{0!r}'.format(float(nodata))),
-    ]
-    with open(new_base + '.sgrd', 'w', encoding='utf-8') as header_file:
-        for key, value in header:
-            header_file.write('{}\t= {}\n'.format(key, value))
-
-    # Projection file.
-    sample_prj = os.path.splitext(os.fspath(rasterfn))[0] + '.prj'
-    new_prj = new_base + '.prj'
-    if (os.path.isfile(sample_prj)
-            and os.path.abspath(sample_prj) != os.path.abspath(new_prj)):
-        shutil.copyfile(sample_prj, new_prj)
-
+# Nodata values and file names ------------------------------------------------
 
 def get_nodata_mask(rasterfn):
     """
@@ -382,10 +440,8 @@ def get_nodata_value(rasterfn):
     """
     gdal = _import_gdal()
     if gdal is None:
-        if _is_saga_file(rasterfn):
-            return get_nodata_value_saga(rasterfn)
-        raise ImportError("GDAL is not installed. Without GDAL, only SAGA "
-                          "grids (.sdat) can be read.")
+        _check_readable_without_gdal(rasterfn)
+        return get_nodata_value_saga(rasterfn)
     raster = gdal.Open(rasterfn)
     band = raster.GetRasterBand(1)
     return band.GetNoDataValue()
@@ -409,8 +465,6 @@ def get_nodata_value_saga(rasterfn):
         The nodata value, None if the header does not have one.
 
     """
-    if not _is_saga_file(rasterfn):
-        raise ValueError("Expected a SAGA .sgrd or .sdat file.")
     header = _read_saga_header(rasterfn)
     if 'NODATA_VALUE' not in header:
         return None
