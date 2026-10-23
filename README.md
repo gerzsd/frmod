@@ -28,6 +28,13 @@ The package contains two modules:
 
 - **utils:** Utilities for handling the input and output of georeferenced raster grids. Based mainly on code snippets from the Python GDAL/OGR Cookbook 1.0 (https://pcjericks.github.io/py-gdalogr-cookbook/)
 
+## Installation and GDAL
+
+GDAL is optional. `pip install .` installs frmod with numpy, pandas and matplotlib only. `pip install ".[gdal]"` also installs the GDAL Python bindings (the GDAL library must be available on the system). The conda `environment.yml` includes GDAL.
+
+- **Without GDAL**, SAGA grids (`.sdat` + `.sgrd`) are read with numpy: `utils.raster2array_saga`, `utils.get_nodata_value_saga`. The `analysis` module uses them automatically. Results can be saved as SAGA grids with `utils.array2raster_saga`.
+- **With GDAL**, GDAL reads the rasters and any GDAL-compatible format (eg. GeoTIFF) can be used. `utils.array2raster` writes them.
+
 @ Dávid Gerzsenyi, 2024
 
 

@@ -5,6 +5,9 @@ dependencies:
   - python
   - numpy
   - pip
+  # GDAL is optional: it is only needed for raster formats other than SAGA
+  # grids (eg. GeoTIFF) and for utils.array2raster. The demo notebook saves
+  # a GeoTIFF, so it is kept in this environment.
   - gdal
   - pip:
     - pandas

@@ -247,6 +247,108 @@ class TestRaster2ArraySaga(unittest.TestCase):
                 self.assertEqual(without_gdal.dtype, with_gdal.dtype)
 
 
+class TestArray2RasterSaga(unittest.TestCase):
+
+    def setUp(self):
+        folder = tempfile.TemporaryDirectory()
+        self.addCleanup(folder.cleanup)
+        self.folder = folder.name
+        self.sample = sample_path('scarps')  # 475 rows x 1064 columns.
+        self.shape = (475, 1064)
+
+    def out_path(self, name='out'):
+        return os.path.join(self.folder, name + '.sdat')
+
+    def test_exporting_a_sample_grid_gives_the_same_files(self):
+        # The sample grids were written by SAGA: the data and projection
+        # files must be the same, byte by byte.
+        for name, nodata in (('scarps', -99999.), ('SRTM31_EG_GF_m', -99999.),
+                             ('fdt100_14k', 0.)):
+            with self.subTest(name=name):
+                sample = sample_path(name)
+                new = self.out_path(name)
+                utils.array2raster_saga(
+                    sample, new, utils.raster2array_saga(sample),
+                    nodata=nodata)
+                for extension in ('.sdat', '.prj'):
+                    with open(sample[:-5] + extension, 'rb') as expected:
+                        with open(new[:-5] + extension, 'rb') as written:
+                            self.assertEqual(written.read(), expected.read())
+                self.assertEqual(utils.get_nodata_value_saga(new), nodata)
+
+    def test_data_type_comes_from_the_array(self):
+        for data_format, np_type in utils._SAGA_DATA_TYPES.items():
+            with self.subTest(data_format=data_format):
+                signed = not np.issubdtype(np_type, np.unsignedinteger)
+                values = np.arange(self.shape[0] * self.shape[1]) % 100
+                array = (values - (50 if signed else 0)).astype(np_type)
+                array = array.reshape(self.shape)
+                new = self.out_path()
+                utils.array2raster_saga(self.sample, new, array)
+                self.assertEqual(
+                    utils._read_saga_header(new)['DATAFORMAT'], data_format)
+                result = utils.raster2array_saga(new)
+                np.testing.assert_array_equal(result, array)
+                self.assertEqual(result.dtype, array.dtype)
+
+    def test_header_values(self):
+        new = self.out_path('new_grid')
+        array = np.zeros(self.shape, dtype=np.float32)
+        utils.array2raster_saga(self.sample, new, array, nodata=-1.5)
+        sample_header = utils._read_saga_header(self.sample)
+        header = utils._read_saga_header(new)
+        for key in ('POSITION_XMIN', 'POSITION_YMIN', 'CELLSIZE',
+                    'CELLCOUNT_X', 'CELLCOUNT_Y'):
+            self.assertEqual(header[key], sample_header[key])
+        self.assertEqual(header['NAME'], 'new_grid')
+        self.assertEqual(header['TOPTOBOTTOM'], 'FALSE')
+        self.assertEqual(utils.get_nodata_value_saga(new), -1.5)
+        # The header path of the new grid works as a sample grid too.
+        utils.array2raster_saga(new[:-5] + '.sgrd', self.out_path('second'),
+                                array)
+
+    def test_bool_array_is_written_as_unsigned_byte(self):
+        new = self.out_path()
+        array = np.zeros(self.shape, dtype=bool)
+        array[0, 0] = True
+        utils.array2raster_saga(self.sample, new, array)
+        self.assertEqual(
+            utils._read_saga_header(new)['DATAFORMAT'], 'BYTE_UNSIGNED')
+        np.testing.assert_array_equal(utils.raster2array_saga(new), array)
+
+    def test_wrong_input_is_reported(self):
+        good = np.zeros(self.shape, dtype=np.float32)
+        new = self.out_path()
+        with self.assertRaises(ValueError):  # Wrong shape.
+            utils.array2raster_saga(self.sample, new, good[:10])
+        with self.assertRaises(ValueError):  # No SAGA type for int64.
+            utils.array2raster_saga(self.sample, new, good.astype(np.int64))
+        with self.assertRaises(ValueError):  # Not a SAGA output path.
+            utils.array2raster_saga(self.sample, new[:-5] + '.tif', good)
+        with self.assertRaises(ValueError):  # Not a SAGA sample.
+            utils.array2raster_saga('sample.tif', new, good)
+        with open(os.path.join(self.folder, 'bad.sgrd'), 'w') as header_file:
+            header_file.write('DATAFORMAT\t= FLOAT\n')
+        with self.assertRaises(ValueError):  # Header without grid system.
+            utils.array2raster_saga(
+                os.path.join(self.folder, 'bad.sgrd'), new, good)
+
+    def test_gdal_reads_the_new_grid(self):
+        # Needs a real GDAL installation: GDAL must read the same values and
+        # the same georeference from the new grid as from the sample grid.
+        gdal = utils._import_gdal()
+        if gdal is None:
+            self.skipTest("GDAL is not installed.")
+        new = self.out_path()
+        array = np.arange(self.shape[0] * self.shape[1], dtype=np.float32)
+        array = array.reshape(self.shape)
+        utils.array2raster_saga(self.sample, new, array)
+        np.testing.assert_array_equal(utils.raster2array(new), array)
+        self.assertEqual(gdal.Open(new).GetGeoTransform(),
+                         gdal.Open(self.sample).GetGeoTransform())
+        self.assertEqual(utils.get_nodata_value(new), -99999.)
+
+
 class TestWithoutGdal(unittest.TestCase):
     """SAGA grids can be used when GDAL is not installed."""
 
@@ -286,6 +388,22 @@ class TestWithoutGdal(unittest.TestCase):
             utils.get_nodata_value('grid.tif')
         with self.assertRaises(ImportError):
             utils.array2raster('grid.sdat', 'out.tif', np.zeros((2, 2)))
+
+    def test_results_can_be_exported_and_read_back(self):
+        np.random.seed(2021)
+        slope = VRaster('slope', sample_path('SRTM31_EG_GF_Slope_m'), bins=20)
+        scarps = LandslideMask('scarps', sample_path('scarps'),
+                               ls_marker=1, fold_count=5)
+        fra = FRAnalysis(scarps, [slope])
+        fra.get_result()
+        fra.get_percentile_grid()
+        with tempfile.TemporaryDirectory() as folder:
+            new = os.path.join(folder, 'percentiles.sdat')
+            utils.array2raster_saga(sample_path('scarps'), new,
+                                    fra.percentile_grid)
+            np.testing.assert_array_equal(utils.raster2array(new),
+                                          fra.percentile_grid)
+            self.assertEqual(utils.get_nodata_value(new), -99999.)
 
     def test_analysis_runs_on_the_sample_data(self):
         # The demo analysis of the notebook: mean AUC 19.0679 with this seed.
