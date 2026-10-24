@@ -32,8 +32,8 @@ The package contains two modules:
 
 GDAL is optional. `pip install .` installs frmod with numpy, pandas and matplotlib only. `pip install ".[gdal]"` also installs the GDAL Python bindings (the GDAL library must be available on the system). The conda `environment.yml` includes GDAL.
 
-- **Without GDAL**, SAGA grids (`.sdat` + `.sgrd`) are read with numpy: `utils.raster2array_saga`, `utils.get_nodata_value_saga`. The `analysis` module uses them automatically. Results can be saved as SAGA grids with `utils.array2raster_saga`.
-- **With GDAL**, GDAL reads the rasters and any GDAL-compatible format (eg. GeoTIFF) can be used. `utils.array2raster` writes them.
+- **By default**, `VRaster` and `LandslideMask` read SAGA grids (`.sdat` + `.sgrd`) with numpy, GDAL is not needed (`utils.raster2array_saga`, `utils.get_nodata_value_saga`). Results can be saved as SAGA grids with `utils.array2raster_saga`.
+- **With `use_gdal=True`**, eg. `VRaster(name, path, use_gdal=True)` and `LandslideMask(name, path, use_gdal=True)`, GDAL reads the rasters (`utils.raster2array`, `utils.get_nodata_value`) and any GDAL-compatible format (eg. GeoTIFF) can be used. GDAL must be installed. `utils.array2raster` writes rasters with GDAL.
 
 @ Dávid Gerzsenyi, 2024
 

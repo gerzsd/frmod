@@ -54,15 +54,12 @@ class TestFRAnalysis(unittest.TestCase):
     def setUp(self):
         # Dict {path: (array, nodata value)} that stands in for raster files.
         self.files = {}
-        patches = [
-            mock.patch.object(utils, 'raster2array',
-                              lambda path: self.files[path][0].copy()),
-            mock.patch.object(utils, 'get_nodata_value',
-                              lambda path: self.files[path][1]),
-        ]
-        for patch in patches:
-            patch.start()
-            self.addCleanup(patch.stop)
+        patch = mock.patch.object(
+            utils, 'read_raster',
+            lambda path, use_gdal=False: (self.files[path][0].copy(),
+                                          self.files[path][1]))
+        patch.start()
+        self.addCleanup(patch.stop)
 
     def make_analysis(self, ls_marker=1, nls_marker=0, classic_mode=True):
         """Create an FRAnalysis of two layers and a mask on a 30 x 30 grid.
@@ -128,6 +125,30 @@ class TestFRAnalysis(unittest.TestCase):
         # Every cell of the study area has a reclassified value and a percentile.
         self.assertTrue(np.all(fra.percentile_grid[~outside] >= 1))
         self.assertTrue(np.all(fra.rc_folds[0][0][~outside] >= 0))
+
+    def test_categorical_layer_with_nodata_inside_the_study_area(self):
+        # Geology classes 1-4. Class 0 is nodata, also in a few cells inside
+        # the study area: these must not become a class or break the bins.
+        rng = np.random.default_rng(0)
+        geology = rng.integers(1, 5, (30, 30)).astype(float)
+        geology[20:22, 10:12] = 0
+        geology[:, :4] = 0
+        mask = np.zeros((30, 30))
+        mask[10:15, 10:15] = 1
+        mask[:, :4] = NODATA
+        self.files['geology'] = (geology, 0.)
+        self.files['mask'] = (mask, NODATA)
+        for classic_mode in (True, False):
+            with self.subTest(classic_mode=classic_mode):
+                np.random.seed(1)
+                lsm = LandslideMask('mask', 'mask', fold_count=5)
+                layer = VRaster('geology', 'geology', categorical=True)
+                fra = FRAnalysis(lsm, [layer], classic_mode=classic_mode)
+                fra.get_result()
+                self.assertEqual(list(fra.stats['geology']['geology_min']),
+                                 [1., 2., 3., 4.])
+                # The nodata cells have no susceptibility.
+                self.assertTrue(np.all(fra.fresult[20:22, 10:12] == NODATA))
 
 
 class TestRaster2ArraySaga(unittest.TestCase):
@@ -349,6 +370,85 @@ class TestArray2RasterSaga(unittest.TestCase):
         self.assertEqual(utils.get_nodata_value(new), -99999.)
 
 
+class TestUseGdalOption(unittest.TestCase):
+    """VRaster and LandslideMask read SAGA grids by default, GDAL on request.
+
+    GDAL is not needed here: its readers are replaced by the SAGA readers,
+    wrapped in mocks that remember the calls.
+    """
+
+    def setUp(self):
+        self.path = sample_path('scarps')
+        self.gdal_reader = mock.patch.object(
+            utils, 'raster2array', wraps=utils.raster2array_saga).start()
+        self.gdal_nodata = mock.patch.object(
+            utils, 'get_nodata_value',
+            wraps=utils.get_nodata_value_saga).start()
+        self.saga_reader = mock.patch.object(
+            utils, 'raster2array_saga', wraps=utils.raster2array_saga).start()
+        self.saga_nodata = mock.patch.object(
+            utils, 'get_nodata_value_saga',
+            wraps=utils.get_nodata_value_saga).start()
+        self.addCleanup(mock.patch.stopall)
+
+    def create(self, use_gdal):
+        """Create a VRaster and a LandslideMask of the same file."""
+        kwargs = {} if use_gdal is None else {'use_gdal': use_gdal}
+        return (VRaster('layer', self.path, **kwargs),
+                LandslideMask('mask', self.path, **kwargs))
+
+    def test_saga_grids_are_read_without_gdal_by_default(self):
+        for use_gdal in (None, False):
+            with self.subTest(use_gdal=use_gdal):
+                for mocked in (self.gdal_reader, self.gdal_nodata,
+                               self.saga_reader, self.saga_nodata):
+                    mocked.reset_mock()
+                layer, mask = self.create(use_gdal)
+                self.assertFalse(layer.use_gdal)
+                self.assertFalse(mask.use_gdal)
+                self.assertEqual(self.saga_reader.call_count, 2)
+                self.assertEqual(self.saga_nodata.call_count, 2)
+                self.gdal_reader.assert_not_called()
+                self.gdal_nodata.assert_not_called()
+                self.assertEqual(layer.grid.shape, (475, 1064))
+                self.assertEqual(layer.nodata, -99999.)
+
+    def test_gdal_readers_are_used_on_request(self):
+        layer, mask = self.create(True)
+        self.assertTrue(layer.use_gdal)
+        self.assertTrue(mask.use_gdal)
+        self.assertEqual(self.gdal_reader.call_count, 2)
+        self.assertEqual(self.gdal_nodata.call_count, 2)
+        self.saga_reader.assert_not_called()
+        self.saga_nodata.assert_not_called()
+        for item in (layer, mask):
+            np.testing.assert_array_equal(
+                item.grid, utils.raster2array_saga(self.path))
+            self.assertEqual(item.nodata, -99999.)
+
+    def test_use_gdal_without_gdal_is_reported(self):
+        with mock.patch.object(utils, '_import_gdal', return_value=None):
+            # The GDAL readers are the real ones again.
+            mock.patch.stopall()
+            with self.assertRaises(ImportError):
+                VRaster('layer', self.path, use_gdal=True)
+            with self.assertRaises(ImportError):
+                LandslideMask('mask', self.path, use_gdal=True)
+            with self.assertRaises(ImportError):
+                utils.read_raster(self.path, use_gdal=True)
+
+    def test_gdal_gives_the_same_grid(self):
+        # Needs a real GDAL installation.
+        mock.patch.stopall()
+        if utils._import_gdal() is None:
+            self.skipTest("GDAL is not installed.")
+        saga_layer, saga_mask = self.create(False)
+        gdal_layer, gdal_mask = self.create(True)
+        for saga, gdal in ((saga_layer, gdal_layer), (saga_mask, gdal_mask)):
+            np.testing.assert_array_equal(gdal.grid, saga.grid)
+            self.assertEqual(gdal.nodata, saga.nodata)
+
+
 class TestWithoutGdal(unittest.TestCase):
     """SAGA grids can be used when GDAL is not installed."""
 
@@ -357,18 +457,18 @@ class TestWithoutGdal(unittest.TestCase):
         patch.start()
         self.addCleanup(patch.stop)
 
-    def test_saga_grids_are_read_with_the_saga_reader(self):
+    def test_saga_grids_are_read_by_default(self):
         path = sample_path('scarps')
-        grid = utils.raster2array(path)
+        grid, nodata = utils.read_raster(path)
         np.testing.assert_array_equal(grid, utils.raster2array_saga(path))
         self.assertEqual(grid.shape, (475, 1064))
+        self.assertEqual(nodata, -99999.)
 
     def test_nodata_value_is_read_from_the_header(self):
         for name, nodata in (('scarps', -99999.), ('SRTM31_EG_GF_m', -99999.),
                              ('fdt100_14k', 0.)):
             with self.subTest(name=name):
                 path = sample_path(name)
-                self.assertEqual(utils.get_nodata_value(path), nodata)
                 self.assertEqual(utils.get_nodata_value_saga(path), nodata)
                 # The header path works too.
                 self.assertEqual(
@@ -381,13 +481,15 @@ class TestWithoutGdal(unittest.TestCase):
                 header_file.write('DATAFORMAT\t= FLOAT\n')
             self.assertIsNone(utils.get_nodata_value_saga(path))
 
-    def test_other_formats_need_gdal(self):
+    def test_the_gdal_functions_need_gdal(self):
+        # Also for SAGA grids: the SAGA functions are used for them.
+        path = sample_path('scarps')
         with self.assertRaises(ImportError):
-            utils.raster2array('grid.tif')
+            utils.raster2array(path)
         with self.assertRaises(ImportError):
-            utils.get_nodata_value('grid.tif')
+            utils.get_nodata_value(path)
         with self.assertRaises(ImportError):
-            utils.array2raster('grid.sdat', 'out.tif', np.zeros((2, 2)))
+            utils.array2raster(path, 'out.tif', np.zeros((2, 2)))
 
     def test_results_can_be_exported_and_read_back(self):
         np.random.seed(2021)
@@ -401,9 +503,9 @@ class TestWithoutGdal(unittest.TestCase):
             new = os.path.join(folder, 'percentiles.sdat')
             utils.array2raster_saga(sample_path('scarps'), new,
                                     fra.percentile_grid)
-            np.testing.assert_array_equal(utils.raster2array(new),
+            np.testing.assert_array_equal(utils.raster2array_saga(new),
                                           fra.percentile_grid)
-            self.assertEqual(utils.get_nodata_value(new), -99999.)
+            self.assertEqual(utils.get_nodata_value_saga(new), -99999.)
 
     def test_analysis_runs_on_the_sample_data(self):
         # The demo analysis of the notebook: mean AUC 19.0679 with this seed.

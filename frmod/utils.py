@@ -53,11 +53,14 @@ def _is_saga_file(rasterfn):
     return _extension(rasterfn) in ('.sdat', '.sgrd')
 
 
-def _check_readable_without_gdal(rasterfn):
-    """Raise an ImportError if the file can only be read with GDAL."""
-    if not _is_saga_file(rasterfn):
-        raise ImportError("GDAL is not installed. Without GDAL, only SAGA "
-                          "grids (.sdat) can be read.")
+def _require_gdal():
+    """Return the osgeo.gdal module, raise an ImportError without GDAL."""
+    gdal = _import_gdal()
+    if gdal is None:
+        raise ImportError("GDAL is not installed. SAGA grids can be used "
+                          "without GDAL, see raster2array_saga and "
+                          "array2raster_saga.")
+    return gdal
 
 
 # SAGA grids: the header, shared by reading and writing ----------------------
@@ -113,8 +116,8 @@ def raster2array(rasterfn):
     """
     Raster to array.
 
-    GDAL reads the raster. If GDAL is not installed, SAGA grids (.sdat) are
-    read with raster2array_saga instead.
+    GDAL reads the raster, it must be installed. SAGA grids can be read
+    without GDAL with raster2array_saga.
 
     Parameters
     ----------
@@ -129,10 +132,7 @@ def raster2array(rasterfn):
         The nodata values of the input raster are masked.
 
     """
-    gdal = _import_gdal()
-    if gdal is None:
-        _check_readable_without_gdal(rasterfn)
-        return raster2array_saga(rasterfn)
+    gdal = _require_gdal()
     raster = gdal.Open(rasterfn)
     band = raster.GetRasterBand(1)
     band_as_array = band.ReadAsArray()
@@ -222,6 +222,35 @@ def raster2array_saga(rasterfn):
     return _rows_top_down(band_as_array, header)
 
 
+def read_raster(rasterfn, use_gdal=False):
+    """
+    Read a raster and its nodata value.
+
+    By default the raster must be a SAGA grid and it is read without GDAL
+    (raster2array_saga, get_nodata_value_saga). With use_gdal=True GDAL reads
+    it (raster2array, get_nodata_value): GDAL must be installed, and any
+    GDAL-compatible raster format can be used.
+
+    Parameters
+    ----------
+    rasterfn : str
+        Path to the raster.
+    use_gdal : bool, optional
+        True to read the raster with GDAL. The default is False.
+
+    Returns
+    -------
+    band_as_array : Array
+        The first band of the raster as a 2D array.
+    nodata : int / float
+        The nodata value of the raster.
+
+    """
+    if use_gdal:
+        return raster2array(rasterfn), get_nodata_value(rasterfn)
+    return raster2array_saga(rasterfn), get_nodata_value_saga(rasterfn)
+
+
 # Writing a raster ------------------------------------------------------------
 
 def array2raster(rasterfn, new_raster_fn, array, driver='SAGA'):
@@ -247,10 +276,7 @@ def array2raster(rasterfn, new_raster_fn, array, driver='SAGA'):
     None.
 
     """
-    gdal = _import_gdal()
-    if gdal is None:
-        raise ImportError("GDAL is needed to write raster files. "
-                          "SAGA grids can be written with array2raster_saga.")
+    gdal = _require_gdal()
     import osgeo.osr as osr
 
     raster = gdal.Open(rasterfn)
@@ -424,8 +450,8 @@ def get_nodata_value(rasterfn):
     """
     Fetch the nodata value of the input file.
 
-    GDAL reads the nodata value. If GDAL is not installed, the nodata value
-    of SAGA grids (.sdat) is read with get_nodata_value_saga instead.
+    GDAL reads the nodata value, it must be installed. The nodata value of
+    SAGA grids can be read without GDAL with get_nodata_value_saga.
 
     Parameters
     ----------
@@ -438,10 +464,7 @@ def get_nodata_value(rasterfn):
         The nodata value of the input file.
 
     """
-    gdal = _import_gdal()
-    if gdal is None:
-        _check_readable_without_gdal(rasterfn)
-        return get_nodata_value_saga(rasterfn)
+    gdal = _require_gdal()
     raster = gdal.Open(rasterfn)
     band = raster.GetRasterBand(1)
     return band.GetNoDataValue()

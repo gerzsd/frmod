@@ -283,7 +283,8 @@ def show_grid(grid, nodata, name='Grid', **kwargs):
 class VRaster():
     """Variable raster, input for frequency ratio analysis."""
 
-    def __init__(self, name, path, bins=10, categorical=False):
+    def __init__(self, name, path, bins=10, categorical=False,
+                 use_gdal=False):
         """
         Create the VRaster object.
 
@@ -292,11 +293,16 @@ class VRaster():
         name : str
             Name of the VRaster.
         path : str
-            Path to the GDAL-compatible raster file.
+            Path to the raster file. A SAGA grid (.sdat) by default.
+            With use_gdal=True: any GDAL-compatible raster file.
         bins : int, optional
             Number of histogram bins. The default is 10.
         categorical : bool, optional
             True if it is a categorical variable, eg: geology.
+            The default is False.
+        use_gdal : bool, optional
+            False: the SAGA grid is read without GDAL.
+            True: GDAL reads the raster, it must be installed.
             The default is False.
 
         Returns
@@ -308,9 +314,9 @@ class VRaster():
         self.path = path
         self.bins = bins
         self.categorical = categorical
-        self.nodata = utils.get_nodata_value(path)
-        # Convert input grid to array
-        self.grid = utils.raster2array(path)
+        self.use_gdal = use_gdal
+        # Convert input grid to array and get its nodata value
+        self.grid, self.nodata = utils.read_raster(path, use_gdal=use_gdal)
         # Calculate basic statistics for the grid
         self.min = min(self.grid[self.grid != self.nodata])
         self.max = max(self.grid[self.grid != self.nodata])
@@ -354,7 +360,8 @@ class VRaster():
 class LandslideMask():
     """LandslideMask."""
 
-    def __init__(self, name, path, ls_marker=1, nls_marker=0, fold_count=5):
+    def __init__(self, name, path, ls_marker=1, nls_marker=0, fold_count=5,
+                 use_gdal=False):
         """
         Create a LandslideMask object.
 
@@ -364,6 +371,8 @@ class LandslideMask():
             Name of the landslide mask.
         path : str
             Path to the file used as the mask in the analysis.
+            A SAGA grid (.sdat) by default.
+            With use_gdal=True: any GDAL-compatible raster file.
         ls_marker : int, optional
             Value marking the landslide pixels.
             The default is 1.
@@ -373,6 +382,10 @@ class LandslideMask():
             The default is 0.
         fold_count : int, optional
             The number of cross validation folds. The default is 5.
+        use_gdal : bool, optional
+            False: the SAGA grid is read without GDAL.
+            True: GDAL reads the raster, it must be installed.
+            The default is False.
 
         Returns
         -------
@@ -383,10 +396,10 @@ class LandslideMask():
         self.name = name
         # Path to the input mask file.
         self.path = path
-        # NoData value of the input mask file.
-        self.nodata = utils.get_nodata_value(path)
-        # 2D array representation of the input mask file.
-        self.grid = utils.raster2array(path)
+        # Read the input mask file with GDAL?
+        self.use_gdal = use_gdal
+        # 2D array representation of the input mask file and its NoData value.
+        self.grid, self.nodata = utils.read_raster(path, use_gdal=use_gdal)
         # Value marking the landslide cells.
         self.ls_marker = ls_marker
         # Value marking the non-landslide cells. Different from nodata!
