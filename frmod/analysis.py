@@ -149,7 +149,7 @@ def get_freq_ratios(vr,
     ls_area = np.count_nonzero(mask == ls_marker)
     nls_area = np.count_nonzero(mask == nls_marker)
     if categorical:
-        bin_edges = np.unique(vr[(vr != nodata)].compressed())
+        bin_edges = np.unique(np.ma.compressed(vr[(vr != nodata)]))
         bin_edges = np.append(bin_edges, bin_edges[-1] + 1)
         ls_hst = np.histogram(vr[mask == ls_marker],
                               bins=bin_edges,
