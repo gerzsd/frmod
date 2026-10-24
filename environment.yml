@@ -2,9 +2,13 @@ name: frmod
 channels:
   - conda-forge
 dependencies:
-  - python
-  - numpy
+  # Minimum versions match python_requires and install_requires in setup.py.
+  - python>=3.8
+  - numpy>=1.22
   - pip
+  # GDAL is optional: it is only needed for raster formats other than SAGA
+  # grids (eg. GeoTIFF, with use_gdal=True) and for utils.array2raster. The
+  # demo notebook saves a GeoTIFF, so it is kept in this environment.
   - gdal
   - pip:
     - pandas

@@ -65,7 +65,7 @@ def get_freq_ratios_classic(vr,
     ls_area = np.count_nonzero(mask == ls_marker)
     all_area = np.count_nonzero(mask == nls_marker) + ls_area
     if categorical:
-        bin_edges = np.unique(vr[in_all])
+        bin_edges = np.unique(vr[in_all].compressed())
         bin_edges = np.append(bin_edges, bin_edges[-1] + 1)
         ls_hst = np.histogram(vr[mask == ls_marker],
                               bins=bin_edges,
@@ -149,7 +149,7 @@ def get_freq_ratios(vr,
     ls_area = np.count_nonzero(mask == ls_marker)
     nls_area = np.count_nonzero(mask == nls_marker)
     if categorical:
-        bin_edges = np.unique(vr[(vr != nodata)])
+        bin_edges = np.unique(np.ma.compressed(vr[(vr != nodata)]))
         bin_edges = np.append(bin_edges, bin_edges[-1] + 1)
         ls_hst = np.histogram(vr[mask == ls_marker],
                               bins=bin_edges,
@@ -190,9 +190,8 @@ def get_freq_ratios(vr,
     return frequency_ratios, hst_bins, fr_stat_df
 
 
-# TODO: a name change is due to reclass_array
-# TODO Use more generic variable names. This can reclass any array.
-def reclass_raster(vr, f_ratios, bin_edges, verbose=False):
+def reclass_raster(vr, f_ratios, bin_edges, verbose=False,
+                   categorical=False, nodata=None):
     """
     Create an array with the frequency ratios.
 
@@ -208,21 +207,41 @@ def reclass_raster(vr, f_ratios, bin_edges, verbose=False):
         Length: number of bins + 1.
     verbose : bool
         Set True to print the bin ranges and reclass values.
+    categorical : bool, optional
+        Set True if vr holds category IDs. A cell is then reclassified only
+        if its value is exactly one of the categories in bin_edges, so
+        categories that were not part of the analysis stay nodata.
+        The default is False.
+    nodata : int / float, optional
+        The nodata value of vr. Cells with this value are not reclassified,
+        even if the value falls inside the range of the bins.
+        The default is None (no nodata value).
 
     Returns
     -------
     reclassed : Array
         Reclassified array with the appropriate frequency ratio values.
+        Cells that were not reclassified are set to -99999.
 
     """
     reclassed = np.ones(vr.shape) * -99999
+    last_bin = len(f_ratios) - 1
     for i in range(0, len(f_ratios)):
         # Reclassifying the raster by assigning the frequency ratio
         # values of each bin to the corresponding raster values.
         mn = bin_edges[:-1][i]
         mx = bin_edges[1:][i]
         vrange = mx - mn
-        to_reclass = (vr >= mn) & (vr < mx)
+        if categorical:
+            # The bin of a category starts at the category ID.
+            to_reclass = (vr == mn)
+        elif i == last_bin:
+            # The last bin includes its upper edge, like in np.histogram.
+            to_reclass = (vr >= mn) & (vr <= mx)
+        else:
+            to_reclass = (vr >= mn) & (vr < mx)
+        if nodata is not None:
+            to_reclass &= (vr != nodata)
         reclassed[to_reclass] = f_ratios[i]
         if verbose:
             print("Min: {} Max: {} Range: {} Ratio: {}".format(
@@ -264,7 +283,8 @@ def show_grid(grid, nodata, name='Grid', **kwargs):
 class VRaster():
     """Variable raster, input for frequency ratio analysis."""
 
-    def __init__(self, name, path, bins=10, categorical=False):
+    def __init__(self, name, path, bins=10, categorical=False,
+                 use_gdal=False):
         """
         Create the VRaster object.
 
@@ -273,11 +293,16 @@ class VRaster():
         name : str
             Name of the VRaster.
         path : str
-            Path to the GDAL-compatible raster file.
+            Path to the raster file. A SAGA grid (.sdat) by default.
+            With use_gdal=True: any GDAL-compatible raster file.
         bins : int, optional
             Number of histogram bins. The default is 10.
         categorical : bool, optional
             True if it is a categorical variable, eg: geology.
+            The default is False.
+        use_gdal : bool, optional
+            False: the SAGA grid is read without GDAL.
+            True: GDAL reads the raster, it must be installed.
             The default is False.
 
         Returns
@@ -289,9 +314,9 @@ class VRaster():
         self.path = path
         self.bins = bins
         self.categorical = categorical
-        self.nodata = utils.get_nodata_value(path)
-        # Convert input grid to array
-        self.grid = utils.raster2array(path)
+        self.use_gdal = use_gdal
+        # Convert input grid to array and get its nodata value
+        self.grid, self.nodata = utils.read_raster(path, use_gdal=use_gdal)
         # Calculate basic statistics for the grid
         self.min = min(self.grid[self.grid != self.nodata])
         self.max = max(self.grid[self.grid != self.nodata])
@@ -335,7 +360,8 @@ class VRaster():
 class LandslideMask():
     """LandslideMask."""
 
-    def __init__(self, name, path, ls_marker=1, nls_marker=0, fold_count=5):
+    def __init__(self, name, path, ls_marker=1, nls_marker=0, fold_count=5,
+                 use_gdal=False):
         """
         Create a LandslideMask object.
 
@@ -345,6 +371,8 @@ class LandslideMask():
             Name of the landslide mask.
         path : str
             Path to the file used as the mask in the analysis.
+            A SAGA grid (.sdat) by default.
+            With use_gdal=True: any GDAL-compatible raster file.
         ls_marker : int, optional
             Value marking the landslide pixels.
             The default is 1.
@@ -354,6 +382,10 @@ class LandslideMask():
             The default is 0.
         fold_count : int, optional
             The number of cross validation folds. The default is 5.
+        use_gdal : bool, optional
+            False: the SAGA grid is read without GDAL.
+            True: GDAL reads the raster, it must be installed.
+            The default is False.
 
         Returns
         -------
@@ -364,10 +396,10 @@ class LandslideMask():
         self.name = name
         # Path to the input mask file.
         self.path = path
-        # NoData value of the input mask file.
-        self.nodata = utils.get_nodata_value(path)
-        # 2D array representation of the input mask file.
-        self.grid = utils.raster2array(path)
+        # Read the input mask file with GDAL?
+        self.use_gdal = use_gdal
+        # 2D array representation of the input mask file and its NoData value.
+        self.grid, self.nodata = utils.read_raster(path, use_gdal=use_gdal)
         # Value marking the landslide cells.
         self.ls_marker = ls_marker
         # Value marking the non-landslide cells. Different from nodata!
@@ -581,14 +613,18 @@ class FRAnalysis():
                                                   mask=msk,
                                                   binc=vrr.bins,
                                                   nodata=vrr.nodata,
-                                                  categorical=vrr.categorical)
+                                                  categorical=vrr.categorical,
+                                                  ls_marker=lsm.ls_marker,
+                                                  nls_marker=lsm.nls_marker)
             else:
                 fr_data = get_freq_ratios(vr=vrr.grid,
                                           mask=msk,
                                           binc=vrr.bins,
                                           nodata=vrr.nodata,
                                           categorical=vrr.categorical,
-                                          normalize=False
+                                          normalize=False,
+                                          ls_marker=lsm.ls_marker,
+                                          nls_marker=lsm.nls_marker
                                           )
             frq_ratios = fr_data[0]
             hst_bins = fr_data[1]
@@ -598,7 +634,9 @@ class FRAnalysis():
             all_frq_ratios.append(frq_ratios)
             all_hst_bins.append(hst_bins)
             # Reclassify the VRaster.grid
-            reclassed = reclass_raster(vrr.grid, frq_ratios, hst_bins)
+            reclassed = reclass_raster(vrr.grid, frq_ratios, hst_bins,
+                                       categorical=vrr.categorical,
+                                       nodata=vrr.nodata)
             # Append the reclassified VRaster.grid to rc_folds
             rc_folds.append(reclassed)
 
@@ -637,6 +675,12 @@ class FRAnalysis():
         """
         rc_folds = self.rc_folds
         valid_positions = self.ls_mask.valid_positions
+        # Start from empty lists, so calling get_result() again
+        # does not add the folds a second time.
+        self.valid_perc = []
+        self.v_dist = []
+        self.v_bins = []
+        self.fold_percentiles = []
         result = []
         # TODO remove percentile_result if really not used
         percentile_result = []
@@ -648,22 +692,26 @@ class FRAnalysis():
                 fold_result = np.ones(rc_folds[0][0].shape)
             else:
                 fold_result = np.zeros(rc_folds[0][0].shape)
+            # Cells that have no valid value in at least one of the layers.
+            # Valid frequency ratios are >= 0, nodata is -99999.
+            nodata_cells = np.zeros(fold_result.shape, dtype=bool)
 
             # Iterate over the reclassified grids of fold #i
             for j in rc_folds:
+                nodata_cells |= ~(j[i] >= 0)
                 if product:
                     fold_result *= j[i]
                 else:
                     # Average the reclassified  grids of fold #i.
                     fold_result += j[i] / self.var_count
+            # Without this, nodata can look valid after the multiplication,
+            # eg. (-99999) * (-99999) is a large positive number.
+            fold_result[nodata_cells] = -99999
 
             # Percentile bin edges for conversion to percentiles
             valid_perc = np.quantile(fold_result[fold_result >= 0],
                                      percentile_bins,
-                                     interpolation='nearest')
-# TODO 
-# Users of the modes 'nearest', 'lower', 'higher', or 'midpoint'
-# are encouraged to review the method they used. (Deprecated NumPy 1.22)
+                                     method='nearest')
 
             self.valid_perc.append(valid_perc)
             v_to_score = fold_result[valid_positions[i]]

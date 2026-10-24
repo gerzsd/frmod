@@ -5,9 +5,9 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name='frmod',
-    version='0.1.5',
+    version='0.2.0',
     author='Dávid Gerzsenyi',
-    author_email='gerzsd@student.elte.hu',
+    author_email='gerzsdavid@gmail.com',
     description='Landslide susceptibility analysis using frequency or likelihood ratios',
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -17,7 +17,11 @@ setuptools.setup(
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
     ],
-    python_requires='>=3.6',
-    install_requires=['numpy', 'matplotlib', 'pandas', 'gdal', 'osr'],
+    # numpy 1.22 is the first version with the method argument of np.quantile.
+    python_requires='>=3.8',
+    install_requires=['numpy>=1.22', 'matplotlib', 'pandas'],
+    # GDAL is optional: SAGA grids can be read and written without it.
+    # Install it with: pip install frmod[gdal]
+    extras_require={'gdal': ['gdal']},
     license='MIT',
 )
