@@ -35,6 +35,30 @@ GDAL is optional. `pip install .` installs frmod with numpy, pandas and matplotl
 - **By default**, `VRaster` and `LandslideMask` read SAGA grids (`.sdat` + `.sgrd`) with numpy, GDAL is not needed (`utils.raster2array_saga`, `utils.get_nodata_value_saga`). Results can be saved as SAGA grids with `utils.array2raster_saga`.
 - **With `use_gdal=True`**, eg. `VRaster(name, path, use_gdal=True)` and `LandslideMask(name, path, use_gdal=True)`, GDAL reads the rasters (`utils.raster2array`, `utils.get_nodata_value`) and any GDAL-compatible format (eg. GeoTIFF) can be used. GDAL must be installed. `utils.array2raster` writes rasters with GDAL.
 
-@ Dávid Gerzsenyi, 2024
+frmod needs Python 3.8 or newer and numpy 1.22 or newer.
+
+### Upgrading from 0.1.5 or earlier
+
+Reading rasters without GDAL is now the default, so **inputs in other formats than SAGA grids (eg. GeoTIFF) need `use_gdal=True`**. Without it, `VRaster` and `LandslideMask` raise `ValueError: Expected a SAGA .sgrd or .sdat file.` See the [changelog](CHANGELOG.md) for the other changes, some of which can change the results on your data.
+
+## Input data requirements
+
+- All rasters (the landslide mask and every variable) must have the **same grid**: the same number of rows and columns, the same extent and the same coordinate reference system. frmod does not check this.
+- Only the first band of each raster is used.
+- In the landslide mask, `ls_marker` (default 1) marks the landslide pixels and `nls_marker` (default 0) marks the non-landslide pixels. Every other value, eg. nodata, is treated as outside of the study area.
+
+## Running the tests
+
+```
+python -m unittest discover tests
+```
+
+The tests use small synthetic grids. The few tests that compare the SAGA reader and writer with GDAL are skipped if GDAL is not installed.
+
+## Interpreting the cross validation
+
+The validation pixels are chosen randomly, pixel by pixel. Neighbouring pixels of the same landslide can therefore end up in both the training and the validation set, which tends to make the success rates and AUC values optimistic. Treat them as a measure of how well the model reproduces the mapped landslide areas, not as an independent test. Note also that frmod reports the area under the success rate curve on a 0-100 scale, where a **lower value is better** and a random model scores 50. The conventional AUC is `1 - value / 100`.
+
+@ Dávid Gerzsenyi, 2026
 
 
